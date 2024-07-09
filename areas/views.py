@@ -2,10 +2,17 @@ import random
 
 from django.views.generic import TemplateView
 
+class AreaListView(TemplateView):
+    template_name = "areas_list.html"
 
+    def get_context_data(self, **kwargs):
 
-class HomeView(TemplateView):
-    template_name = "home.html"
+        context = super().get_context_data(**kwargs)
+
+        return context
+
+class WorksheetListView(TemplateView):
+    template_name = "worksheet_list.html"
 
     def get_context_data(self, **kwargs):
 

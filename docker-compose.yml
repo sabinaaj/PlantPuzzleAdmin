@@ -1,16 +1,25 @@
+x-app: &plantpuzzle
+  build:
+    context: "."
+  volumes:
+    - .:/app
+  restart: "unless-stopped"
 
 services:
   web:
-    build: .
+    <<: *plantpuzzle
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - 8001:8000
     env_file:
       - .env
-    volumes:
-      - .:/usr/src/app/
     environment:
       - DEBUG=True
+
+  tailwind:
+    <<: *plantpuzzle
+    command: "python manage.py tailwind start"
+    tty: true
 
   db:
     image: postgres:15

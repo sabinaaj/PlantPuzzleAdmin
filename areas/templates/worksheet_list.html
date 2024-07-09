@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+
+<div class="max-w-6xl mx-auto py-8">
+    <!-- Header with large icon and title -->
+    <div class="flex items-center mb-8">
+        <svg class="h-16 w-16 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <h1 class="text-3xl font-bold text-gray-700">Oblast</h1>
+    </div>
+
+    <!-- Tabs and add button -->
+    <div class="flex">
+        <div class="flex space-x-0.5">
+            <button class="bg-pastel-brown text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Pracovní listy
+            </button>
+            <button class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Rostliny</button>
+        </div>
+        <button class="ml-auto bg-green-500 text-white rounded-t-md px-4 py-2 hover:bg-green-600 shadow">
+            <i class="fas fa-plus"></i>
+        </button>
+    </div>
+
+    <!-- Table container -->
+    <div class="bg-white shadow-md rounded-b-md p-4">
+        <table class="min-w-full bg-white rounded-md overflow-hidden">
+            <thead>
+            <tr>
+                <th class="py-2 px-4 bg-gray-200 text-xs font-semibold text-gray-700 uppercase w-1/2 text-left">Název
+                </th>
+                <th class="py-2 px-4 bg-gray-200 text-xs font-semibold text-gray-700 uppercase">Export bez odpovědí</th>
+                <th class="py-2 px-4 bg-gray-200 text-xs font-semibold text-gray-700 uppercase">Export s odpověďmi</th>
+                <th class="py-2 px-4 bg-gray-200 text-xs font-semibold text-gray-700 uppercase">Upravit</th>
+                <th class="py-2 px-4 bg-gray-200 text-xs font-semibold text-gray-700 uppercase">Smazat</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="border-b">
+                <td class="py-2 px-4 text-gray-700 text-left max-w-full">jmeno</td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-file-export fa-lg text-green-500 hover:text-green-600 cursor-pointer"></i>
+                </td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-file-export fa-lg text-blue-500 hover:text-blue-600 cursor-pointer"></i>
+                </td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-edit fa-lg text-yellow-500 hover:text-yellow-600 cursor-pointer"></i>
+                </td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-trash-alt fa-lg text-red-500 hover:text-red-600 cursor-pointer"></i>
+                </td>
+            </tr>
+            <tr class="border-b">
+                <td class="py-2 px-4 text-gray-700 text-left max-w-full">jmeno</td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-file-export fa-lg text-green-500 hover:text-green-600 cursor-pointer"></i>
+                </td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-file-export fa-lg text-blue-500 hover:text-blue-600 cursor-pointer"></i>
+                </td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-edit fa-lg text-yellow-500 hover:text-yellow-600 cursor-pointer"></i>
+                </td>
+                <td class="py-2 px-4 text-center">
+                    <i class="fas fa-trash-alt fa-lg text-red-500 hover:text-red-600 cursor-pointer"></i>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}

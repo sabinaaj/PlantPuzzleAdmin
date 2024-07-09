@@ -1,9 +1,12 @@
 from django.urls import path
 
-from .views import HomeView
+from .views import AreaListView, WorksheetListView
 
 app_name = "areas"
 
 urlpatterns = [
-    path("", HomeView.as_view(), name="home"),
+    path("", AreaListView.as_view(), name="area_list"),
+    path("list", AreaListView.as_view(), name="area_list"),
+    path("worksheet/list", WorksheetListView.as_view(), name="worksheet_list"),
 ]
+

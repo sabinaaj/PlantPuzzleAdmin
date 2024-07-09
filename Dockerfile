@@ -1,18 +1,38 @@
-FROM python:3.11.4-slim-buster
+FROM python:3.12-slim-bookworm
 
-WORKDIR /usr/src/app
+WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ARG NODE_MAJOR=18
 
-RUN apt-get update && apt-get install -y curl
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt-get install -y nodejs
+RUN apt-get update \
+  && apt-get install -y ca-certificates curl gnupg \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update \
+  && apt-get install nodejs -y \
+  && rm -rf /var/lib/apt/lists/* /usr/share/doc /usr/share/man \
+  && apt-get clean \
+  && useradd --create-home python \
+  && chown python:python -R /app
 
-RUN pip install --upgrade pip
-COPY ./requirements.txt /usr/src/app/requirements.txt
-RUN pip install --upgrade pip && pip install -r requirements.txt
+USER python
 
-COPY . /usr/src/app/
+COPY --chown=python:python requirements*.txt ./
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+RUN pip install -r requirements.txt
+
+ENV DEBUG="${DEBUG}" \
+    PYTHONUNBUFFERED="true" \
+    PATH="${PATH}:/home/python/.local/bin" \
+    USER="python"
+
+COPY --chown=python:python . .
+
+WORKDIR /app
+
+RUN SECRET_KEY="${SECRET_KEY}" python manage.py tailwind install --no-input;
+RUN SECRET_KEY="${SECRET_KEY}" python manage.py tailwind build --no-input;
+RUN SECRET_KEY="${SECRET_KEY}" python manage.py collectstatic --no-input;
+
+CMD ["python", "manage.py", "runserver"]
