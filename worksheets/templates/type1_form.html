@@ -1,0 +1,57 @@
+<div class="mb-4">
+    <label for="task1Instruction" class="block text-sm font-medium text-gray-700">Zadání</label>
+    <textarea id="task1Instruction" name="task1Instruction" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500" rows="3"></textarea>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-4">
+    <div></div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">1. možnost</label>
+        <input type="text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
+    </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700">2. možnost</label>
+        <input type="text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
+    </div>
+</div>
+<div id="type1QuestionsContainer">
+    <div class="grid grid-cols-3 gap-4 mb-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Otázka</label>
+            <input type="text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Správná odpověď</label>
+            <input type="checkbox" class="mt-1">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Správná odpověď</label>
+            <input type="checkbox" class="mt-1">
+        </div>
+    </div>
+</div>
+<button type="button" class="bg-green-500 text-white rounded-full p-2 hover:bg-green-600" onclick="addType1Question(this)">
+    <i class="fas fa-plus"></i>
+</button>
+
+<script>
+    function addType1Question(button) {
+        const container = button.previousElementSibling;
+        const questionRow = document.createElement('div');
+        questionRow.className = 'grid grid-cols-3 gap-4 mb-4';
+        questionRow.innerHTML = `
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Otázka</label>
+                <input type="text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Správná odpověď</label>
+                <input type="checkbox" class="mt-1">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Správná odpověď</label>
+                <input type="checkbox" class="mt-1">
+            </div>
+        `;
+        container.appendChild(questionRow);
+    }
+</script>
