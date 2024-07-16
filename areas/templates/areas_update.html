@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+    {% include 'navbar.html' %}
+
+    <div class="max-w-6xl mx-auto py-8 pt-10">
+
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-700 px-3">Upravit oblast</h1>
+            <a href="{% url 'areas:area_list' %}">
+                <button class="ml-auto bg-pistachio-500 text-white rounded px-3 py-2 hover:bg-pistachio-600 shadow">
+                    Uložit
+                </button>
+            </a>
+        </div>
+
+        <div class="bg-white shadow-md rounded-md p-4">
+            <form id="worksheetForm">
+                <div class="flex items-center mb-4 space-x-4">
+                    <div class="w-1/2">
+                        {% include 'forms/input.html' with  name='name' label='Název' placeholder='Zadejte název' %}
+                    </div>
+                    <div class="w-1/2">
+                        <label for="task2File" class="block text-sm font-medium text-gray-700">Ikona</label>
+                        <input type="file" id="task2File" name="task2File"
+                               class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
+
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+{% endblock %}

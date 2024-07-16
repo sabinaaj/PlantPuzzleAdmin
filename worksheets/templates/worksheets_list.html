@@ -18,9 +18,10 @@
     <!-- Tabs and add button -->
     <div class="flex">
         <div class="flex space-x-0.5">
-            <button class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Pracovní listy
-            </button>
-            <button class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Rostliny</button>
+            <button class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Pracovní listy</button>
+            <a href="{% url 'areas:plants_list' %}">
+                <button class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Rostliny</button>
+            </a>
         </div>
         <button class="ml-auto bg-pistachio-500 text-white rounded-t-md px-4 py-2 hover:bg-pistachio-600 shadow">
             <i class="fas fa-plus"></i>
