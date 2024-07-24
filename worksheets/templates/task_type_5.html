@@ -1,0 +1,33 @@
+{% load static %}
+
+<div class="mb-4">
+    {% include 'forms/input.html' with name='text' label='Zadání' placeholder='Doplňte zadání' %}
+</div>
+
+<div class="flex items-center space-x-4 ">
+    <label class="block text-sm font-medium text-gray-700">Dvojice</label>
+</div>
+
+<div id="QuestionsContainerTaskId">
+    <div class="question-row">
+        <div class="flex items-center mb-2 space-x-4">
+            <div class="w-1/2">
+                {% include 'forms/input.html' with name='text' placeholder='Otázka' %}
+            </div>
+            <div class="w-1/2">
+                {% include 'forms/input.html' with name='text' placeholder='Možnost' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4 m-4">
+    <div class="flex items-center justify-center">
+        <button type="button" class="text-red-400 hover:text-red-500 p-2" onclick="removeLastQuestion(TaskId)">
+            <i class="fa fa-minus fa-xl"></i>
+        </button>
+        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2" onclick="addQuestionOptionRow(TaskId)">
+            <i class="fa fa-plus fa-xl"></i>
+        </button>
+    </div>
+</div>

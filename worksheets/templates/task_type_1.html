@@ -13,8 +13,7 @@
     </div>
 </div>
 <div id="QuestionsContainerTaskId">
-    <!-- Existing question -->
-    <div class="question-row grid grid-cols-3 gap-4 mb-4">
+    <div class="question-row grid grid-cols-3 gap-4 mb-2">
         <div>
             {% include 'forms/input.html' with name='text' placeholder='Otázka' %}
         </div>
@@ -26,12 +25,12 @@
         </div>
     </div>
 </div>
-<div class="grid grid-cols-3 gap-4 mb-4">
+<div class="grid grid-cols-3 gap-4 m-4">
     <div class="flex items-center justify-center">
         <button type="button" class="text-red-400 hover:text-red-500 p-2" onclick="removeLastQuestion(TaskId)">
-            <i class="fa fa-xmark fa-xl"></i>
+            <i class="fa fa-minus fa-xl"></i>
         </button>
-        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2" onclick="addQuestion(TaskId)">
+        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2" onclick="addQuestionWithRadio(TaskId)">
             <i class="fa fa-plus fa-xl"></i>
         </button>
     </div>

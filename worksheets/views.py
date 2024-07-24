@@ -31,6 +31,12 @@ def load_task_form(request, task_type):
         template_name = 'task_type_1.html'
     elif task_type == "2":
         template_name = 'task_type_2.html'
+    elif task_type == "3":
+        template_name = 'task_type_3.html'
+    elif task_type == "4":
+        template_name = 'task_type_4.html'
+    elif task_type == "5":
+        template_name = 'task_type_5.html'
     else:
         return JsonResponse({'error': 'Invalid task type'}, status=400)
 
