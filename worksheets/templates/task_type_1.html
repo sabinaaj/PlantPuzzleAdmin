@@ -1,0 +1,37 @@
+{% load static %}
+
+<div class="mb-4">
+    {% include 'forms/input.html' with name='text' label='Zadání' placeholder='Doplňte zadání' %}
+</div>
+<div class="grid grid-cols-3 gap-4 mb-4">
+    <div></div>
+    <div>
+        {% include 'forms/input.html' with name='text' placeholder='1. možnost' label='1. možnost' %}
+    </div>
+    <div>
+        {% include 'forms/input.html' with name='text' label='2. možnost' placeholder='2. možnost' %}
+    </div>
+</div>
+<div id="QuestionsContainerTaskId">
+    <div class="question-row grid grid-cols-3 gap-4 mb-2">
+        <div>
+            {% include 'forms/input.html' with name='text' placeholder='Otázka' %}
+        </div>
+        <div class="flex items-center justify-center">
+            {% include 'forms/radiobutton.html' with name="correctTaskId_1" checked="true"%}
+        </div>
+        <div class="flex items-center justify-center">
+            {% include 'forms/radiobutton.html' with name="correctTaskId_1" checked="false"%}
+        </div>
+    </div>
+</div>
+<div class="grid grid-cols-3 gap-4 m-4">
+    <div class="flex items-center justify-center">
+        <button type="button" class="text-red-400 hover:text-red-500 p-2" onclick="removeLastQuestion(TaskId)">
+            <i class="fa fa-minus fa-xl"></i>
+        </button>
+        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2" onclick="addQuestionWithRadio(TaskId)">
+            <i class="fa fa-plus fa-xl"></i>
+        </button>
+    </div>
+</div>
