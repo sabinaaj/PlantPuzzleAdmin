@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+
+<div class="max-w-6xl mx-auto py-8 pt-10">
+
+    <form id="areaForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold text-gray-700 px-3">{% if form.instance.pk %}Upravit oblast{% else %}Vytvořit oblast{% endif %}</h1>
+            <div class="flex items-center space-x-2">
+                <button class="ml-auto bg-pistachio-500 text-white rounded px-3 py-2 hover:bg-pistachio-600 shadow">
+                Zrušit
+            </button>
+            <button type="submit"
+                    class="ml-auto bg-pistachio-500 text-white rounded px-3 py-2 hover:bg-pistachio-600 shadow">
+                Uložit
+            </button>
+            </div>
+
+        </div>
+
+        <div class="bg-white shadow-md rounded-md p-4">
+            <form id="worksheetForm">
+                <div class="flex items-center mb-4 space-x-4">
+                    <div class="w-1/2">
+                        {% include 'forms/input.html' with name='title' value=form.title.value label='Název' placeholder='Zadejte název' %}
+                    </div>
+                    <div class="w-1/2">
+                        <label for="id_icon" class="block text-sm font-medium text-gray-700">Ikona</label>
+                        <input type="file" id="id_icon" name="icon"
+                               class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm outline-none focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
+                        {{ form.icon.errors }}
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    </form>
+</div>
+
+
+{% endblock %}
