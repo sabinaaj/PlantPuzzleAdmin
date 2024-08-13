@@ -22,7 +22,7 @@
         {% for area in areas %}
 
         <div class="bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow flex items-center justify-between space-x-4">
-            <a href="{% url 'worksheets:worksheets_list' %}" class="flex items-center space-x-4 hover:underline overflow-hidden">
+            <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="flex items-center space-x-4 hover:underline overflow-hidden">
                 <div class="flex-shrink-0">
                     {% if area.icon %}
                     <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-12 w-12 rounded-full">
