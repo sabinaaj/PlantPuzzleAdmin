@@ -1,13 +1,12 @@
 from django.urls import path
 
-from .views import WorksheetListView, WorksheetTemplateView
-from . import views
+from .views import WorksheetListView, WorksheetCreateView, LoadTaskFormView
 
 app_name = "worksheets"
 
 urlpatterns = [
-    path("list", WorksheetListView.as_view(), name="worksheets_list"),
-    path("create", WorksheetTemplateView.as_view(), name="worksheets_create"),
-    path('load_task_form/<str:task_type>/', views.load_task_form, name='load_task_form'),
+    path("<int:area>/list", WorksheetListView.as_view(), name="worksheets_list"),
+    path("<int:area>/create", WorksheetCreateView.as_view(), name="worksheets_create"),
+    path('<int:area>/load_task_form/<str:task_type>/', LoadTaskFormView.as_view(), name='load_task_form'),
 ]
 

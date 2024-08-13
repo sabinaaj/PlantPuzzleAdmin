@@ -20,12 +20,14 @@
         <div class="flex space-x-0.5">
             <button class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Pracovní listy</button>
             <a href="{% url 'areas:plants_list' %}">
-                <button class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Rostliny</button>
+                <button class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow hover:bg-gray-200 hover:border-gray-700">
+                    Rostliny
+                </button>
             </a>
         </div>
-        <button class="ml-auto bg-pistachio-500 text-white rounded-t-md px-4 py-2 hover:bg-pistachio-600 shadow">
+        <a href="{% url 'worksheets:worksheets_create' area.pk %}" class="ml-auto bg-pistachio-500 text-white rounded-t-md px-4 pt-3 hover:bg-pistachio-600 shadow">
             <i class="fas fa-plus"></i>
-        </button>
+        </a>
     </div>
 
     <!-- Table container -->
@@ -42,8 +44,11 @@
             </tr>
             </thead>
             <tbody>
-            <tr class="border-b  cursor-pointer hover:bg-gray-50" onclick="window.location.href='{% url 'worksheets:worksheets_create' %}'">
-                <td class="py-3 px-4 text-gray-700 text-left max-w-full">jmeno</td>
+
+            {% for worksheet in worksheets %}
+            <tr class="border-b  cursor-pointer hover:bg-gray-50"
+                onclick="window.location.href='{% url 'worksheets:worksheets_create' area.pk %}'">
+                <td class="py-3 px-4 text-gray-700 text-left max-w-full">{{ worksheet.title }}</td>
                 <td class="py-3 px-4 text-center">
                     <i class="fas fa-file-export fa-lg text-pistachio-500 hover:text-pistachio-600"></i>
                 </td>
@@ -57,6 +62,14 @@
                     <i class="fas fa-trash-alt fa-lg text-red-400 hover:text-red-500 cursor-pointer"></i>
                 </td>
             </tr>
+
+            {% empty %}
+            <tr class="border-b">
+                <td class="py-3 px-4 text-gray-700 text-left max-w-full">Žádné pracovní listy nebyly nalezeny</td>
+            </tr>
+
+            {% endfor %}
+
             </tbody>
         </table>
     </div>

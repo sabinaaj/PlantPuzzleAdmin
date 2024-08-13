@@ -1,6 +1,5 @@
 from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView
 from django.urls import reverse, reverse_lazy
-from django.shortcuts import get_object_or_404
 
 from areas.forms import AreaForm
 from areas.models import Area
@@ -29,9 +28,11 @@ class AreaUpdateView(UpdateView):
     def get_success_url(self):
         return reverse("areas:area_list")
 
+
 class AreaDeleteView(DeleteView):
     model = Area
     success_url = reverse_lazy("areas:area_list")
+
 
 class PlantListView(TemplateView):
     template_name = "plants_list.html"
