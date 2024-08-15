@@ -2,11 +2,11 @@
 
 <div class="flex items-center mb-4 space-x-4">
     <div class="w-1/2">
-        {% include 'forms/input.html' with name='text' label='Zadání' placeholder='Doplňte zadání' %}
+        {% include 'forms/input.html' with id='task-TaskId-text' name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' %}
     </div>
     <div class="w-1/2">
-        <label for="task2File" class="block text-sm font-medium text-gray-700">Obrázek</label>
-        <input type="file" id="task2File" name="task2File"
+        <label for="question_TaskId-image" class="block text-sm font-medium text-gray-700">Obrázek</label>
+        <input type="file" id="question_TaskId-image" name="question_TaskId-image"
                class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
     </div>
 </div>
@@ -25,10 +25,10 @@
     <div class="question-row">
         <div class="flex items-center mb-2 space-x-4">
             <div class="w-1/2 pr-2">
-                {% include 'forms/input.html' with name='text' placeholder='Možnost' %}
+                {% include 'forms/input.html' with id='option_TaskId-0-text' name='option_TaskId-0-text' placeholder='Možnost' value='' label='' %}
             </div>
             <div class="flex items-center justify-center w-1/6">
-                {% include 'forms/checkbox.html' with name="correctTaskId_1" size=6 %}
+                {% include 'forms/checkbox.html' with id='option_TaskId-0-is_correct' name='option_TaskId-0-is_correct' size=6 %}
             </div>
         </div>
     </div>

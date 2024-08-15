@@ -1,8 +1,11 @@
 {% load static %}
 
-<div class="flex items-center mb-4">
-    <div class="w-1/2 pr-2">
-        {% include 'forms/input.html' with name='text' label='Otázka' placeholder='Doplňte otázku' %}
+<div class="flex items-center mb-4 space-x-4">
+    <div class="w-1/2">
+        {% include 'forms/input.html' with id='task-TaskId-text' name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' %}
+    </div>
+    <div class="w-1/2">
+        {% include 'forms/input.html' with id='question_TaskId-text' name='question_TaskId-text' label='Otázka' placeholder='Doplňte otázku' value='' %}
     </div>
 </div>
 
@@ -17,13 +20,13 @@
 </div>
 
 <div id="QuestionsContainerTaskId">
-    <div class="question-row">
+    <div class="question-row option-form">
         <div class="flex items-center mb-2 space-x-4">
             <div class="w-1/2 pr-2">
-                {% include 'forms/input.html' with name='text' placeholder='Možnost' %}
+                {% include 'forms/input.html' with id='option_TaskId-0-text' name='option_TaskId-0-text' placeholder='Možnost' value='' label='' %}
             </div>
             <div class="flex items-center justify-center w-1/6">
-                {% include 'forms/checkbox.html' with name="correctTaskId_1" size=6 %}
+                {% include 'forms/checkbox.html' with id='option_TaskId-0-is_correct' name='option_TaskId-0-is_correct' size=6 %}
             </div>
         </div>
     </div>

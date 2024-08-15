@@ -40,7 +40,7 @@
             <h2 class="text-2xl font-bold text-gray-700 mb-4">Vytvořit pracovní list</h2>
             <div class="flex items-top mb-4 space-x-4">
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with name='title' value=form.title.value label='Název' placeholder='Zadejte název' %}
+                    {% include 'forms/input.html' with name='title' value=form.title.value|default_if_none:'' label='Název' placeholder='Zadejte název' %}
 
                     <label class="block text-sm font-medium text-gray-700 pt-4">Určeno pro</label>
                     <div class="border border-gray-300 rounded-md shadow-sm mt-1">
@@ -59,21 +59,6 @@
             </div>
 
             {{ form.errors }}
-            {{ task_formset.errors }}
-            {{ question_formset.errors }}
-            {{ option_formset.errors }}
-
-            {% for task_form in task_formset %}
-            <div class="task-form">
-                {{ task_form.as_p }}
-
-                <!-- Questions formset -->
-                <div class="questionsContainer">
-                    <!-- Placeholder for questions, to be dynamically filled with JS -->
-                </div>
-            </div>
-        {% endfor %}
-
 
             <div class="flex items-center mb-4 mt-8">
                 <h3 class="text-xl font-bold text-gray-700">Úlohy</h3>
@@ -84,9 +69,6 @@
                 </button>
             </div>
 
-            {{ task_formset.management_form }}
-            {{ question_formset.management_form }}
-            {{ option_formset.management_form }}
             <div id="tasksContainer"></div>
         </div>
     </form>
@@ -100,18 +82,18 @@
     function addTask() {
         taskCount++;
         const taskContainer = document.createElement('div');
-        taskContainer.className = 'task-container mb-4 p-4 border border-gray-200 rounded-md';
+        taskContainer.className = 'task-form mb-4 p-4 border border-gray-200 rounded-md';
         taskContainer.innerHTML = `
         <div class="flex items-center mb-4">
             <h4 class="text-lg font-bold text-gray-700 flex-1">${taskCount}. úloha</h4>
-            <button class="text-red-400 hover:text-red-500 pr-1" onclick="removeTask(this)">
+            <button type="button" class="text-red-400 hover:text-red-500 pr-1" onclick="removeTask(this)">
                  <i class="fa fa-xmark fa-xl"></i>
             </button>
         </div>
         <div class="flex items-center mb-4">
             <div class="w-1/2 pr-2">
-                <label for="type${taskCount}" class="block text-sm font-medium text-gray-700">Typ</label>
-                <select id="type${taskCount}" name="type${taskCount}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500" onchange="loadTaskForm(this, ${taskCount})">
+                <label for="task-${taskCount}-type" class="block text-sm font-medium text-gray-700">Typ</label>
+                <select id="task-${taskCount}-type" name="task-${taskCount}-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500" onchange="loadTaskForm(this, ${taskCount})">
                     <option value="">Vyberte typ</option>
                     {% for task_type in task_types %}
                         <option value="{{ task_type.id }}">{{ task_type.get_type_display }}</option>
@@ -131,7 +113,7 @@
     }
 
     function updateTaskNumbers() {
-        const tasks = document.querySelectorAll('.task-container');
+        const tasks = document.querySelectorAll('.task-form');
         tasks.forEach((task, index) => {
             task.querySelector('h4').textContent = `${index + 1}. úloha`;
         });
@@ -167,13 +149,13 @@
             questionRow.className = 'question-row grid grid-cols-3 gap-4 mb-2';
             questionRow.innerHTML = `
             <div>
-                {% include 'forms/input.html' with name='question_text${taskId}_${rowCounter}' placeholder='Otázka' %}
+                {% include 'forms/input.html' with id='question_${taskId}-${rowCounter}-text' name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' label='' value='' %}
             </div>
             <div class="flex items-center justify-center">
-                {% include 'forms/radiobutton.html' with name="correct${taskId}_${rowCounter}" %}
+                {% include 'forms/radiobutton.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_0'%}
             </div>
             <div class="flex items-center justify-center">
-                {% include 'forms/radiobutton.html' with name="correct${taskId}_${rowCounter}" %}
+                {% include 'forms/radiobutton.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_1'%}
             </div>
             `;
             questionsContainer.appendChild(questionRow);
@@ -193,10 +175,10 @@
             questionRow.innerHTML = `
             <div class="flex items-center mb-2 space-x-4">
                 <div class="w-1/2 pr-2">
-                    {% include 'forms/input.html' with name='text' placeholder='Možnost' %}
+                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' %}
                 </div>
                 <div class="flex items-center justify-center w-1/6">
-                    {% include 'forms/checkbox.html' with name="correctTaskId_${rowCounter}" size=6 %}
+                    {% include 'forms/checkbox.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' size=6 %}
                 </div>
             </div>
             `;
@@ -217,10 +199,10 @@
             questionRow.innerHTML = `
             <div class="flex items-center mb-2 space-x-4">
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with name='text' placeholder='Otázka' %}
+                    {% include 'forms/input.html' with id='question_${taskId}-${rowCounter}-text' name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' value='' label='' %}
                 </div>
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with name='text' placeholder='Možnost' %}
+                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' %}
                 </div>
             </div>
             `;
@@ -241,10 +223,10 @@
             questionRow.innerHTML = `
             <div class="flex items-center mb-2 space-x-4">
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with name='text' placeholder='Možnost' %}
+                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' %}
                 </div>
                 <div class="w-1/2">
-                    <select class="dropdown mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
+                    <select name='option_${taskId}-${rowCounter}-is_correct' class="dropdown${taskId} mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
                         <option value="">Vyberte...</option>
                     </select>
                 </div>
@@ -252,6 +234,17 @@
             `;
             questionsContainer.appendChild(questionRow);
             rowCounter++;
+
+            const numQuestions = $(`#question_${taskId}-counter`).val();
+            const dropdown = questionRow.querySelector(`.dropdown${taskId}`);
+            dropdown.innerHTML = '<option value="">Vyberte...</option>';
+            for (let i = 1; i <= numQuestions; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.text = i;
+                dropdown.appendChild(option);
+            }
+
         } else {
             alert('Maximální počet otázek je 6.');
         }
@@ -268,15 +261,19 @@
         }
     }
 
-    function updateDropdowns(numQuestions) {
-        var dropdowns = document.querySelectorAll('.dropdown');
+    function updateDropdowns(numQuestions, taskId) {
+        const dropdowns = document.querySelectorAll(`.dropdown${taskId}`);
         dropdowns.forEach(function (dropdown) {
+            const value = dropdown.value;
             dropdown.innerHTML = '<option value="">Vyberte...</option>';
-            for (var i = 1; i <= numQuestions; i++) {
-                var option = document.createElement('option');
+            for (let i = 1; i <= numQuestions; i++) {
+                const option = document.createElement('option');
                 option.value = i;
                 option.text = i;
                 dropdown.appendChild(option);
+            }
+            if (value) {
+                dropdown.value = value;
             }
         });
     }
