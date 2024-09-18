@@ -13,10 +13,8 @@
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-3xl font-bold text-gray-700 px-3">{% if form.instance.pk %}Upravit oblast{% else %}Vytvořit oblast{% endif %}</h1>
             <div class="flex items-center space-x-2">
-                <a href="{% url 'areas:area_list' %}" >
-                    <button type="button" class="ml-auto bg-white text-gray-700 rounded px-3 py-2 hover:bg-gray-200 hover:border-gray-700 shadow">
-                        Zrušit
-                    </button>
+                <a href="{% url 'areas:area_list' %}" class="ml-auto bg-white text-gray-700 rounded px-3 py-2 hover:bg-gray-200 hover:border-gray-700 shadow">
+                    Zrušit
                 </a>
                 <button type="submit" class="ml-auto bg-pistachio-500 text-white rounded px-3 py-2 hover:bg-pistachio-600 shadow">
                     Uložit

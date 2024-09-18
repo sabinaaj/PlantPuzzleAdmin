@@ -19,21 +19,24 @@
         {% csrf_token %}
 
         <!-- Tabs and add button -->
-        <div class="flex">
+        <div class="flex justify-between">
             <div class="flex space-x-0.5">
-                <button type="button" class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">
+                <button type="button" class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">
                     Pracovní listy
                 </button>
-                <a href="{% url 'areas:plants_list' %}">
-                    <button type="button" class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">
-                        Rostliny
-                    </button>
+                <a href="{% url 'areas:plants_list' %}" class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1),_inset_0_-1px_3px_rgba(0,0,0,0.1)]">
+                    Rostliny
                 </a>
             </div>
-            <button type="submit"
-                    class="ml-auto bg-pistachio-500 text-white font-medium rounded-t-md px-3 py-2 hover:bg-pistachio-600 shadow">
-                Uložit
-            </button>
+            <div class="flex space-x-0.5">
+               <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="ml-auto bg-white text-gray-700 font-medium rounded-t-md px-3 py-2 hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1)] ">
+                    Zrušit
+               </a>
+               <button type="submit"
+                    class="ml-auto bg-pistachio-500 text-white font-medium rounded-t-md px-3 py-2 hover:bg-pistachio-600 shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">
+                    Uložit
+               </button>
+            </div>
         </div>
 
         <div class="bg-white shadow-md rounded-b-md p-4">
@@ -76,10 +79,14 @@
 
 
 <script>
-    let taskCount = 0;
+     let taskCount = 0;
     let rowCounter = 2;
 
-    function addTask() {
+    document.addEventListener("DOMContentLoaded", function() {
+        restoreTasks();
+    });
+
+    function addTask(data = {}) {
         taskCount++;
         const taskContainer = document.createElement('div');
         taskContainer.className = 'task-form mb-4 p-4 border border-gray-200 rounded-md';
@@ -96,7 +103,7 @@
                 <select id="task-${taskCount}-type" name="task-${taskCount}-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500" onchange="loadTaskForm(this, ${taskCount})">
                     <option value="">Vyberte typ</option>
                     {% for task_type in task_types %}
-                        <option value="{{ task_type.id }}">{{ task_type.get_type_display }}</option>
+                        <option value="{{ task_type.id }}" ${data.type === '{{ task_type.id }}' ? 'selected' : ''}>{{ task_type.get_type_display }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -104,11 +111,16 @@
         <div id="formContainer${taskCount}"></div>
     `;
         document.getElementById('tasksContainer').appendChild(taskContainer);
+        if (data.type) {
+            loadTaskForm(document.getElementById(`task-${taskCount}-type`), taskCount);
+        }
+        saveTasks();
         updateTaskNumbers();
     }
 
     function removeTask(button) {
         button.parentElement.parentElement.remove();
+        saveTasks();
         updateTaskNumbers();
     }
 
@@ -128,8 +140,8 @@
             fetch(`load_task_form/${type}/`)
                 .then(response => response.json())
                 .then(data => {
-                    // Replace the {{ task_id }} placeholder in the HTML with the actual taskId
                     formContainer.innerHTML = data.html.replace(/TaskId/g, taskId);
+                    saveTasks();
                 })
                 .catch(error => {
                     console.error('Error loading task form:', error);
@@ -137,14 +149,29 @@
                 });
         } else {
             formContainer.innerHTML = '';
+            saveTasks();
         }
+    }
+
+    function saveTasks() {
+        const tasks = [];
+        document.querySelectorAll('.task-form').forEach((taskForm, index) => {
+            const taskType = taskForm.querySelector(`select[name="task-${index + 1}-type"]`).value;
+            tasks.push({ type: taskType });
+        });
+        sessionStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function restoreTasks() {
+        const tasks = JSON.parse(sessionStorage.getItem('tasks')) || [];
+        tasks.forEach(taskData => addTask(taskData));
     }
 
     function addQuestionWithRadio(taskId) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 6) {
+        if (questionRows.length < 20) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row grid grid-cols-3 gap-4 mb-2';
             questionRow.innerHTML = `
@@ -160,8 +187,10 @@
             `;
             questionsContainer.appendChild(questionRow);
             rowCounter++;
+
+            let
         } else {
-            alert('Maximální počet otázek je 6.');
+            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -169,7 +198,7 @@
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 6) {
+        if (questionRows.length < 20) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row';
             questionRow.innerHTML = `
@@ -185,7 +214,7 @@
             questionsContainer.appendChild(questionRow);
             rowCounter++;
         } else {
-            alert('Maximální počet otázek je 6.');
+            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -193,7 +222,7 @@
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 6) {
+        if (questionRows.length < 20) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row';
             questionRow.innerHTML = `
@@ -209,7 +238,7 @@
             questionsContainer.appendChild(questionRow);
             rowCounter++;
         } else {
-            alert('Maximální počet otázek je 6.');
+            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -217,7 +246,7 @@
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 6) {
+        if (questionRows.length < 20) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row';
             questionRow.innerHTML = `
@@ -246,7 +275,7 @@
             }
 
         } else {
-            alert('Maximální počet otázek je 6.');
+            alert('Maximální počet otázek je 20.');
         }
     }
 
