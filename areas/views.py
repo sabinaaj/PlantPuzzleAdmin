@@ -1,6 +1,8 @@
 from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView
 from django.urls import reverse, reverse_lazy
+from rest_framework import viewsets
 
+from .serializers import AreaSerializer
 from areas.forms import AreaForm
 from areas.models import Area
 
@@ -41,3 +43,8 @@ class PlantListView(TemplateView):
         context = super().get_context_data(**kwargs)
 
         return context
+
+
+class AreaViewSet(viewsets.ModelViewSet):
+    queryset = Area.objects.all()
+    serializer_class = AreaSerializer
