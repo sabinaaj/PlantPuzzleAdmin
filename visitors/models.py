@@ -1,8 +1,4 @@
 from django.db import models
-from django.db.models import Model
-
-from worksheets.models import Worksheet, Question, Option
-
 
 class SchoolGroup(models.Model):
     class Group(models.IntegerChoices):
@@ -11,18 +7,20 @@ class SchoolGroup(models.Model):
         ZS_2 = 3, 'Druhý stupeň základní školy / Nižší stupeň gymnázia'
         SS = 4, 'Střední škola / Vyšší stupeň gymnázia'
 
-    group = models.IntegerField(choices=Group.choices, null=True, blank=True)
+    group = models.IntegerField(choices=Group.choices, default=Group.ZS_1)
 
 
 class School(models.Model):
+    from worksheets.models import Worksheet
+
     title = models.CharField(max_length=100)
-    school_group = models.ManyToManyField(SchoolGroup)
+    school_groups = models.ManyToManyField(SchoolGroup)
     worksheets = models.ManyToManyField(Worksheet)
 
 
 class Achievement(models.Model):
     title = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
 
 class Visitor(models.Model):
@@ -34,12 +32,16 @@ class Visitor(models.Model):
 
 
 class VisitorResponse(models.Model):
+    from worksheets.models import Question, Option
+
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     option = models.ForeignKey(Option, on_delete=models.CASCADE)
 
 
 class SuccessRate(models.Model):
+    from worksheets.models import Worksheet
+
     rate = models.PositiveSmallIntegerField()
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)

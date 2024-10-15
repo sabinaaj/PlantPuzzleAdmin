@@ -3,69 +3,62 @@
 
 {% block content %}
 
-    {% include 'navbar.html' %}
+{% include 'navbar.html' %}
 
-    <div class="container max-w-6xl mx-auto pt-10">
+<div class="container max-w-6xl mx-auto pt-10">
 
-        <!-- Header with title and add button -->
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-3xl font-bold text-gray-700 px-3">Oblasti</h1>
-            <a href="{% url 'areas:area_create' %}">
-                <button class="ml-auto bg-pistachio-500 text-white rounded px-3 py-3 hover:bg-pistachio-600 shadow">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </a>
-        </div>
-
-        <!-- List of area cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <!-- Example of a single area card -->
-            <a href="{% url 'worksheets:worksheets_list' %}"
-               class="block bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow flex items-center space-x-4">
-                <div class="flex-shrink-0">
-                    <!-- Icon (You can use an appropriate icon here) -->
-                    <svg class="h-12 w-12 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h2 class="text-l font-bold text-gray-700">Název oblasti</h2>
-                </div>
-                <div class="flex space-x-4">
-                    <button class="text-yellow-400 hover:text-yellow-500">
-                        <i class="fa fa-edit fa-lg"></i>
-                    </button>
-                    <button class="text-red-400 hover:text-red-500">
-                        <i class="fa-regular fa-trash-can fa-lg"></i>
-                    </button>
-                </div>
-            </a>
-            <a href="{% url 'worksheets:worksheets_list' %}"
-               class="block bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow duration-300 flex items-center space-x-4">
-                <div class="flex-shrink-0">
-                    <!-- Icon (You can use an appropriate icon here) -->
-                    <svg class="h-12 w-12 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
-                </div>
-                <div class="flex-1">
-                    <h2 class="text-l font-bold text-gray-700">Název oblasti</h2>
-                </div>
-                <div class="flex space-x-4">
-                    <button class="text-yellow-500 hover:text-yellow-600">
-                        <i class="fa fa-edit fa-lg"></i>
-                    </button>
-                    <button class="text-red-500 hover:text-red-600">
-                        <i class="fa-regular fa-trash-can fa-lg"></i>
-                    </button>
-                </div>
-            </a>
-        </div>
-
+    <!-- Header with title and add button -->
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-gray-700 px-3">Oblasti</h1>
+        <a href="{% url 'areas:area_create' %}">
+            <button class="ml-auto bg-pistachio-500 text-white rounded px-3 py-3 hover:bg-pistachio-600 shadow">
+                <i class="fas fa-plus"></i>
+            </button>
+        </a>
     </div>
+
+    <!-- List of area cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {% for area in areas %}
+
+        <div class="bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow flex items-center justify-between space-x-4">
+            <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="flex items-center space-x-4 hover:underline overflow-hidden">
+                <div class="flex-shrink-0">
+                    {% if area.icon %}
+                    <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-12 w-12 rounded-full">
+                    {% else %}
+                    <!-- Default icon if no icon is uploaded -->
+                    <svg class="h-12 w-12 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                         viewBox="0 0 24 24"
+                         stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="flex-1 overflow-hidden">
+                    <h2 class="text-l font-bold text-gray-700 truncate">{{ area.title }}</h2>
+                </div>
+            </a>
+
+            <div class="flex space-x-4">
+                <a href="{% url 'areas:area_update' area.pk %}" class="text-yellow-400 hover:text-yellow-500">
+                    <i class="fa fa-edit fa-lg"></i>
+                </a>
+                <button type="button" class="text-red-400 hover:text-red-500"
+                        onclick="openModal('{{ area.pk }}', '{{ area.title }}')">
+                    <i class="fa-regular fa-trash-can fa-lg"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="flex items-center justify-center h-64">
+            <p class="text-gray-500 text-center">Žádné oblasti nebyly nalezeny.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% include 'areas_confirm_delete.html' %}
 
 {% endblock %}

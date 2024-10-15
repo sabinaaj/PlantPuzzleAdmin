@@ -1,27 +1,27 @@
 {% load static %}
 
 <div class="mb-4">
-    {% include 'forms/input.html' with name='text' label='Zadání' placeholder='Doplňte zadání' %}
+    {% include 'forms/input.html' with id='task-TaskId-text' name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' %}
 </div>
 <div class="grid grid-cols-3 gap-4 mb-4">
     <div></div>
     <div>
-        {% include 'forms/input.html' with name='text' placeholder='1. možnost' label='1. možnost' %}
+        {% include 'forms/input.html' with id='option_TaskId-0-text' name='option_TaskId-0-text' label='1. možnost' placeholder='1. možnost' value='' %}
     </div>
     <div>
-        {% include 'forms/input.html' with name='text' label='2. možnost' placeholder='2. možnost' %}
+        {% include 'forms/input.html' with id='option_TaskId-1-text' name='option_TaskId-1-text' label='2. možnost' placeholder='2. možnost' value='' %}
     </div>
 </div>
 <div id="QuestionsContainerTaskId">
-    <div class="question-row grid grid-cols-3 gap-4 mb-2">
+    <div class="question-form question-row grid grid-cols-3 gap-4 mb-2">
         <div>
-            {% include 'forms/input.html' with name='text' placeholder='Otázka' %}
+            {% include 'forms/input.html' with id='question_TaskId-0-text' name='question_TaskId-0-text' placeholder='Otázka' label='' value='' %}
         </div>
         <div class="flex items-center justify-center">
-            {% include 'forms/radiobutton.html' with name="correctTaskId_1" checked="true"%}
+            {% include 'forms/radiobutton.html' with id='option_TaskId-0-is_correct' name='option_TaskId-0-is_correct' value='is_correct_0' %}
         </div>
         <div class="flex items-center justify-center">
-            {% include 'forms/radiobutton.html' with name="correctTaskId_1" checked="false"%}
+            {% include 'forms/radiobutton.html' with id='option_TaskId-0-is_correct' name='option_TaskId-0-is_correct' value='is_correct_1' %}
         </div>
     </div>
 </div>
@@ -30,7 +30,8 @@
         <button type="button" class="text-red-400 hover:text-red-500 p-2" onclick="removeLastQuestion(TaskId)">
             <i class="fa fa-minus fa-xl"></i>
         </button>
-        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2" onclick="addQuestionWithRadio(TaskId)">
+        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2"
+                onclick="addQuestionWithRadio(TaskId)">
             <i class="fa fa-plus fa-xl"></i>
         </button>
     </div>

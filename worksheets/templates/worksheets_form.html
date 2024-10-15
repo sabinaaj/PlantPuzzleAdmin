@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+
+<div class="max-w-6xl mx-auto py-8">
+    <!-- Header with large icon a title -->
+    <div class="flex items-center mb-8">
+        <svg class="h-16 w-16 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        <h1 class="text-3xl font-bold text-gray-700">Oblast</h1>
+    </div>
+
+    <form id="worksheetForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Tabs and add button -->
+        <div class="flex justify-between">
+            <div class="flex space-x-0.5">
+                <button type="button" class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">
+                    Pracovní listy
+                </button>
+                <a href="{% url 'areas:plants_list' %}" class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1),_inset_0_-1px_3px_rgba(0,0,0,0.1)]">
+                    Rostliny
+                </a>
+            </div>
+            <div class="flex space-x-0.5">
+               <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="ml-auto bg-white text-gray-700 font-medium rounded-t-md px-3 py-2 hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1)] ">
+                    Zrušit
+               </a>
+               <button type="submit"
+                    class="ml-auto bg-pistachio-500 text-white font-medium rounded-t-md px-3 py-2 hover:bg-pistachio-600 shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">
+                    Uložit
+               </button>
+            </div>
+        </div>
+
+        <div class="bg-white shadow-md rounded-b-md p-4">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Vytvořit pracovní list</h2>
+            <div class="flex items-top mb-4 space-x-4">
+                <div class="w-1/2">
+                    {% include 'forms/input.html' with name='title' value=form.title.value|default_if_none:'' label='Název' placeholder='Zadejte název' %}
+
+                    <label class="block text-sm font-medium text-gray-700 pt-4">Určeno pro</label>
+                    <div class="border border-gray-300 rounded-md shadow-sm mt-1">
+
+                        {% for school_group in school_groups %}
+                        <div class="flex items-center m-2 space-x-4 pl-1">
+                            <input type="checkbox" name="school_group" value="{{ school_group.group }}"
+                                   id="id_school_group_{{ school_group.group }}" class="h-4 w-4 cursor-pointer rounded-md border-gray-300 text-pistachio-500
+                                                                                        checked:border-pistachio-500 focus:ring-2 focus:ring-pistachio-500">
+                            <label for="id_school_group_{{ school_group.group }}" class="text-gray-800">{{ school_group.get_group_display }}</label>
+                        </div>
+                        {% endfor %}
+
+                    </div>
+                </div>
+            </div>
+
+            {{ form.errors }}
+
+            <div class="flex items-center mb-4 mt-8">
+                <h3 class="text-xl font-bold text-gray-700">Úlohy</h3>
+                <button type="button"
+                        class="ml-4 bg-pistachio-500 text-white rounded-full w-8 h-8 hover:bg-pistachio-600"
+                        onclick="addTask()">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+
+            <div id="tasksContainer"></div>
+        </div>
+    </form>
+</div>
+
+
+<script>
+     let taskCount = 0;
+    let rowCounter = 2;
+
+    document.addEventListener("DOMContentLoaded", function() {
+        restoreTasks();
+    });
+
+    function addTask(data = {}) {
+        taskCount++;
+        const taskContainer = document.createElement('div');
+        taskContainer.className = 'task-form mb-4 p-4 border border-gray-200 rounded-md';
+        taskContainer.innerHTML = `
+        <div class="flex items-center mb-4">
+            <h4 class="text-lg font-bold text-gray-700 flex-1">${taskCount}. úloha</h4>
+            <button type="button" class="text-red-400 hover:text-red-500 pr-1" onclick="removeTask(this)">
+                 <i class="fa fa-xmark fa-xl"></i>
+            </button>
+        </div>
+        <div class="flex items-center mb-4">
+            <div class="w-1/2 pr-2">
+                <label for="task-${taskCount}-type" class="block text-sm font-medium text-gray-700">Typ</label>
+                <select id="task-${taskCount}-type" name="task-${taskCount}-type" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500" onchange="loadTaskForm(this, ${taskCount})">
+                    <option value="">Vyberte typ</option>
+                    {% for task_type in task_types %}
+                        <option value="{{ task_type.id }}" ${data.type === '{{ task_type.id }}' ? 'selected' : ''}>{{ task_type.get_type_display }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div id="formContainer${taskCount}"></div>
+    `;
+        document.getElementById('tasksContainer').appendChild(taskContainer);
+        if (data.type) {
+            loadTaskForm(document.getElementById(`task-${taskCount}-type`), taskCount);
+        }
+        saveTasks();
+        updateTaskNumbers();
+    }
+
+    function removeTask(button) {
+        button.parentElement.parentElement.remove();
+        saveTasks();
+        updateTaskNumbers();
+    }
+
+    function updateTaskNumbers() {
+        const tasks = document.querySelectorAll('.task-form');
+        tasks.forEach((task, index) => {
+            task.querySelector('h4').textContent = `${index + 1}. úloha`;
+        });
+        taskCount = tasks.length;
+    }
+
+    function loadTaskForm(selectElement, taskId) {
+        const type = selectElement.value;
+        const formContainer = document.getElementById(`formContainer${taskId}`);
+
+        if (type) {
+            fetch(`load_task_form/${type}/`)
+                .then(response => response.json())
+                .then(data => {
+                    formContainer.innerHTML = data.html.replace(/TaskId/g, taskId);
+                    saveTasks();
+                })
+                .catch(error => {
+                    console.error('Error loading task form:', error);
+                    formContainer.innerHTML = '<p class="text-red-500">Error loading form. Please try again later.</p>';
+                });
+        } else {
+            formContainer.innerHTML = '';
+            saveTasks();
+        }
+    }
+
+    function saveTasks() {
+        const tasks = [];
+        document.querySelectorAll('.task-form').forEach((taskForm, index) => {
+            const taskType = taskForm.querySelector(`select[name="task-${index + 1}-type"]`).value;
+            tasks.push({ type: taskType });
+        });
+        sessionStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    function restoreTasks() {
+        const tasks = JSON.parse(sessionStorage.getItem('tasks')) || [];
+        tasks.forEach(taskData => addTask(taskData));
+    }
+
+    function addQuestionWithRadio(taskId) {
+        const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
+        const questionRows = questionsContainer.querySelectorAll('.question-row');
+
+        if (questionRows.length < 20) {
+            const questionRow = document.createElement('div');
+            questionRow.className = 'question-row grid grid-cols-3 gap-4 mb-2';
+            questionRow.innerHTML = `
+            <div>
+                {% include 'forms/input.html' with id='question_${taskId}-${rowCounter}-text' name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' label='' value='' %}
+            </div>
+            <div class="flex items-center justify-center">
+                {% include 'forms/radiobutton.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_0'%}
+            </div>
+            <div class="flex items-center justify-center">
+                {% include 'forms/radiobutton.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_1'%}
+            </div>
+            `;
+            questionsContainer.appendChild(questionRow);
+            rowCounter++;
+
+            let
+        } else {
+            alert('Maximální počet otázek je 20.');
+        }
+    }
+
+    function addOptionWithCheckbox(taskId) {
+        const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
+        const questionRows = questionsContainer.querySelectorAll('.question-row');
+
+        if (questionRows.length < 20) {
+            const questionRow = document.createElement('div');
+            questionRow.className = 'question-row';
+            questionRow.innerHTML = `
+            <div class="flex items-center mb-2 space-x-4">
+                <div class="w-1/2 pr-2">
+                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' %}
+                </div>
+                <div class="flex items-center justify-center w-1/6">
+                    {% include 'forms/checkbox.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' size=6 %}
+                </div>
+            </div>
+            `;
+            questionsContainer.appendChild(questionRow);
+            rowCounter++;
+        } else {
+            alert('Maximální počet otázek je 20.');
+        }
+    }
+
+    function addQuestionOptionRow(taskId) {
+        const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
+        const questionRows = questionsContainer.querySelectorAll('.question-row');
+
+        if (questionRows.length < 20) {
+            const questionRow = document.createElement('div');
+            questionRow.className = 'question-row';
+            questionRow.innerHTML = `
+            <div class="flex items-center mb-2 space-x-4">
+                <div class="w-1/2">
+                    {% include 'forms/input.html' with id='question_${taskId}-${rowCounter}-text' name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' value='' label='' %}
+                </div>
+                <div class="w-1/2">
+                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' %}
+                </div>
+            </div>
+            `;
+            questionsContainer.appendChild(questionRow);
+            rowCounter++;
+        } else {
+            alert('Maximální počet otázek je 20.');
+        }
+    }
+
+    function addOptionWithSelect(taskId) {
+        const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
+        const questionRows = questionsContainer.querySelectorAll('.question-row');
+
+        if (questionRows.length < 20) {
+            const questionRow = document.createElement('div');
+            questionRow.className = 'question-row';
+            questionRow.innerHTML = `
+            <div class="flex items-center mb-2 space-x-4">
+                <div class="w-1/2">
+                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' %}
+                </div>
+                <div class="w-1/2">
+                    <select name='option_${taskId}-${rowCounter}-is_correct' class="dropdown${taskId} mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
+                        <option value="">Vyberte...</option>
+                    </select>
+                </div>
+            </div>
+            `;
+            questionsContainer.appendChild(questionRow);
+            rowCounter++;
+
+            const numQuestions = $(`#question_${taskId}-counter`).val();
+            const dropdown = questionRow.querySelector(`.dropdown${taskId}`);
+            dropdown.innerHTML = '<option value="">Vyberte...</option>';
+            for (let i = 1; i <= numQuestions; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.text = i;
+                dropdown.appendChild(option);
+            }
+
+        } else {
+            alert('Maximální počet otázek je 20.');
+        }
+    }
+
+
+    function removeLastQuestion(taskId) {
+        const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
+        const questionRows = questionsContainer.querySelectorAll('.question-row');
+        if (questionRows.length > 1) {
+            questionsContainer.removeChild(questionRows[questionRows.length - 1]);
+        } else {
+            alert('Musí být alespoň jedna otázka.');
+        }
+    }
+
+    function updateDropdowns(numQuestions, taskId) {
+        const dropdowns = document.querySelectorAll(`.dropdown${taskId}`);
+        dropdowns.forEach(function (dropdown) {
+            const value = dropdown.value;
+            dropdown.innerHTML = '<option value="">Vyberte...</option>';
+            for (let i = 1; i <= numQuestions; i++) {
+                const option = document.createElement('option');
+                option.value = i;
+                option.text = i;
+                dropdown.appendChild(option);
+            }
+            if (value) {
+                dropdown.value = value;
+            }
+        });
+    }
+
+
+</script>
+
+
+{% endblock %}

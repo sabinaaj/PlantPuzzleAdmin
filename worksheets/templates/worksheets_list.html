@@ -18,14 +18,14 @@
     <!-- Tabs and add button -->
     <div class="flex">
         <div class="flex space-x-0.5">
-            <button class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Pracovní listy</button>
-            <a href="{% url 'areas:plants_list' %}">
-                <button class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md shadow">Rostliny</button>
-            </a>
+            <button class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">Pracovní listy</button>
+                <a href="{% url 'areas:plants_list' %}" class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1),_inset_0_-1px_3px_rgba(0,0,0,0.1)]">
+                    Rostliny
+                </a>
         </div>
-        <button class="ml-auto bg-pistachio-500 text-white rounded-t-md px-4 py-2 hover:bg-pistachio-600 shadow">
+        <a href="{% url 'worksheets:worksheets_create' area.pk %}" class="ml-auto bg-pistachio-500 text-white rounded-t-md px-4 pt-3 hover:bg-pistachio-600 shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">
             <i class="fas fa-plus"></i>
-        </button>
+        </a>
     </div>
 
     <!-- Table container -->
@@ -42,24 +42,46 @@
             </tr>
             </thead>
             <tbody>
-            <tr class="border-b  cursor-pointer hover:bg-gray-50" onclick="window.location.href='{% url 'worksheets:worksheets_create' %}'">
-                <td class="py-3 px-4 text-gray-700 text-left max-w-full">jmeno</td>
+
+            {% for worksheet in worksheets %}
+            <tr class="border-b  cursor-pointer hover:bg-gray-50">
+                <td class="py-3 px-4 text-gray-700 text-left max-w-full">{{ worksheet.title }}</td>
                 <td class="py-3 px-4 text-center">
-                    <i class="fas fa-file-export fa-lg text-pistachio-500 hover:text-pistachio-600"></i>
+                    <form method="post" action="{% url 'worksheets:worksheets_export' area.pk worksheet.pk %}" class="inline">
+                        <button type="submit">
+                            <i class="fas fa-file-export fa-lg text-pistachio-500 hover:text-pistachio-600"></i>
+                        </button>
+                    </form>
                 </td>
                 <td class="py-3 px-4 text-center">
-                    <i class="fas fa-file-export fa-lg text-blue-400 hover:text-blue-500 cursor-pointer"></i>
+                    <a href="{% url 'worksheets:worksheets_export_with_answers' area.pk worksheet.pk %}">
+                        <i class="fas fa-file-export fa-lg text-blue-400 hover:text-blue-500 cursor-pointer"></i>
+                    </a>
                 </td>
                 <td class="py-3 px-4 text-center">
-                    <i class="fas fa-edit fa-lg text-yellow-400 hover:text-yellow-500 cursor-pointer"></i>
+                    <a href="{% url 'worksheets:worksheets_update' area.pk worksheet.pk %}">
+                        <i class="fas fa-edit fa-lg text-yellow-400 hover:text-yellow-500 cursor-pointer"></i>
+                    </a>
                 </td>
                 <td class="py-3 px-4 text-center">
-                    <i class="fas fa-trash-alt fa-lg text-red-400 hover:text-red-500 cursor-pointer"></i>
+                    <button type="button" onclick="openModal('{{ worksheet.pk }}', '{{ area.pk }}', '{{ worksheet.title }}')">
+                        <i class="fas fa-trash-alt fa-lg text-red-400 hover:text-red-500 cursor-pointer"></i>
+                    </button>
                 </td>
             </tr>
+
+            {% empty %}
+            <tr class="border-b">
+                <td class="py-3 px-4 text-gray-700 text-left max-w-full">Žádné pracovní listy nebyly nalezeny</td>
+            </tr>
+
+            {% endfor %}
+
             </tbody>
         </table>
     </div>
 </div>
+
+{% include 'worksheets_confirm_delete.html' %}
 
 {% endblock %}
