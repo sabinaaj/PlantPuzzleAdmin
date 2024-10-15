@@ -11,17 +11,22 @@ Tento diagram vizualizuje hlavní funkce a interakce mezi uživateli, mobilní a
 ### ERD - Schéma databáze
 ERD diagram ukazuje vztahy mezi entitami v databázi, jako jsou pracovní listy, školy, návštěvníci a výsledky.
 
+
 ![ERD Diagram](diagrams/erd_diagram.png?raw=true )
+
 
 ### Náhledy z aplikace
 
 - **Webové rozhraní**: Seznam oblastí a tvorba nových pracovních listů.
 
+
 ![Seznam Oblastí](diagrams/seznam_oblasti.png?raw=true )
 
 ![Vytváření Pracovního Listu](diagrams/vytvoreni_listu.png?raw=true )
 
+
 - **Mobilní aplikace**: Wireframe pro připravovanou mobilní aplikaci. Na ukázce jsou různé typy úloh z pracovních listů.
+
 
 ![Typy Úloh 1](diagrams/typy_uloh_1.png?raw=true)
 
