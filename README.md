@@ -6,7 +6,7 @@ Tato aplikace slouží jako administrativní rozhraní pro mobilní aplikaci, kt
 ### Rich Picture Diagram
 Tento diagram vizualizuje hlavní funkce a interakce mezi uživateli, mobilní aplikací a administrativním rozhraním.
 
-![Rich Picture Diagram](diagrams/rich_picture.png?raw=true)
+![Rich Picture Diagram](diagrams/rich_picture.jpg?raw=true)
 
 ### ERD - Schéma databáze
 ERD diagram ukazuje vztahy mezi entitami v databázi, jako jsou pracovní listy, školy, návštěvníci a výsledky.
@@ -16,9 +16,13 @@ ERD diagram ukazuje vztahy mezi entitami v databázi, jako jsou pracovní listy,
 ### Náhledy z aplikace
 
 - **Webové rozhraní**: Seznam oblastí a tvorba nových pracovních listů.
+
 ![Seznam Oblastí](diagrams/seznam_oblasti.png?raw=true )
+
 ![Vytváření Pracovního Listu](diagrams/vytvoreni_listu.png?raw=true )
 
 - **Mobilní aplikace**: Wireframe pro připravovanou mobilní aplikaci. Na ukázce jsou různé typy úloh z pracovních listů.
 
-![Typy Úloh](diagrams/typy_uloh.png?raw=true )
+![Typy Úloh 1](diagrams/typy_uloh_1.png?raw=true)
+
+![Typy Úloh 2](diagrams/typy_uloh_2.png?raw=true )
