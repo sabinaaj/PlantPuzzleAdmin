@@ -14,13 +14,13 @@ class School(models.Model):
     from worksheets.models import Worksheet
 
     title = models.CharField(max_length=100)
-    school_group = models.ManyToManyField(SchoolGroup)
+    school_groups = models.ManyToManyField(SchoolGroup)
     worksheets = models.ManyToManyField(Worksheet)
 
 
 class Achievement(models.Model):
     title = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(null=True, blank=True)
 
 
 class Visitor(models.Model):

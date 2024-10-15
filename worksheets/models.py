@@ -17,8 +17,8 @@ class Worksheet(models.Model):
     from areas.models import Area
 
     title = models.CharField(max_length=100)
-    school_group = models.ManyToManyField(SchoolGroup)
-    area = models.ForeignKey(Area, on_delete=models.CASCADE, blank=True, null=True)
+    school_groups = models.ManyToManyField(SchoolGroup)
+    area = models.ForeignKey(Area, on_delete=models.CASCADE)
 
 
 class Task(models.Model):
@@ -34,6 +34,6 @@ class Question(models.Model):
 
 
 class Option(models.Model):
-    text = models.CharField()
+    text = models.CharField(blank=True, null=True)
     is_correct = models.BooleanField(default=False)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
