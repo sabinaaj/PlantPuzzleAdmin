@@ -361,6 +361,7 @@ class WorksheetExportView(BaseWorksheetExportView):
             self.sheet.row_dimensions[self.row_cnt].height = 10
             self.row_cnt += 1
 
+
     def make_choices_task(self, task):
 
         questions = task.question_set.all()
@@ -385,6 +386,19 @@ class WorksheetExportView(BaseWorksheetExportView):
 
                 self.sheet.row_dimensions[self.row_cnt].height = 10
                 self.row_cnt += 1
+
+
+    def make_choices_picture_task(self, task):
+
+        question = task.question_set.first()
+
+        self.sheet.merge_cells(f'd{self.row_cnt}:j{self.row_cnt + 5}')
+        self.row_cnt += 5
+
+        # for option in question.option_set.all():.
+
+
+
 
     def make_pairs_task(self, task):
 

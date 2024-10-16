@@ -9,7 +9,7 @@
 
     <!-- Header with title and add button -->
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold text-gray-700 px-3">Oblasti</h1>
+        <h1 class="text-3xl font-bold text-gray-700 px-1">Oblasti</h1>
         <a href="{% url 'areas:area_create' %}">
             <button class="ml-auto bg-pistachio-500 text-white rounded px-3 py-3 hover:bg-pistachio-600 shadow">
                 <i class="fas fa-plus"></i>
@@ -18,21 +18,16 @@
     </div>
 
     <!-- List of area cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {% for area in areas %}
 
         <div class="bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow flex items-center justify-between space-x-4">
             <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="flex items-center space-x-4 hover:underline overflow-hidden">
                 <div class="flex-shrink-0">
                     {% if area.icon %}
-                    <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-12 w-12 rounded-full">
+                    <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-14 w-12 rounded-full">
                     {% else %}
-                    <!-- Default icon if no icon is uploaded -->
-                    <svg class="h-12 w-12 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                         viewBox="0 0 24 24"
-                         stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                    </svg>
+                     <img src="{% static 'area_placeholder.png' %}" class="h-14">
                     {% endif %}
                 </div>
                 <div class="flex-1 overflow-hidden">
