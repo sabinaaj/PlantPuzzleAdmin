@@ -8,10 +8,7 @@
 <div class="max-w-6xl mx-auto py-8">
     <!-- Header with large icon and title -->
     <div class="flex items-center mb-8">
-        <svg class="h-16 w-16 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
+        <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
         <h1 class="text-3xl font-bold text-gray-700">Oblast</h1>
     </div>
 
@@ -54,9 +51,11 @@
                     </form>
                 </td>
                 <td class="py-3 px-4 text-center">
-                    <a href="{% url 'worksheets:worksheets_export_with_answers' area.pk worksheet.pk %}">
-                        <i class="fas fa-file-export fa-lg text-brown-700 hover:text-brown-800 cursor-pointer"></i>
-                    </a>
+                    <form method="post" action="{% url 'worksheets:worksheets_export_with_answers' area.pk worksheet.pk %}" class="inline">
+                        <button type="submit">
+                            <i class="fas fa-file-export fa-lg text-brown-700 hover:text-brown-800 cursor-pointer"></i>
+                        </button>
+                    </form>
                 </td>
                 <td class="py-3 px-4 text-center">
                     <a href="{% url 'worksheets:worksheets_update' area.pk worksheet.pk %}">
