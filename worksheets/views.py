@@ -14,6 +14,7 @@ from openpyxl.drawing.image import Image
 from tempfile import NamedTemporaryFile
 from random import shuffle
 
+
 from visitors.models import SchoolGroup
 from areas.models import Area
 from .forms import WorksheetForm
@@ -265,6 +266,7 @@ class BaseWorksheetExportView(View):
     worksheet = None
     sheet = None
     row_cnt = 0
+    task_cnt = 0
 
     def dispatch(self, request, *args, **kwargs):
         self.worksheet = get_object_or_404(Worksheet, pk=kwargs["pk"])
@@ -284,26 +286,182 @@ class BaseWorksheetExportView(View):
 
         self.row_cnt += 5
 
+        self.sheet.merge_cells(f'A{self.row_cnt}:C{self.row_cnt}')
+        self.sheet[f'A{self.row_cnt}'] = 'Jméno: '
+        self.sheet[f'A{self.row_cnt}'].alignment = Alignment(horizontal='right')
+
+        self.sheet.merge_cells(f'D{self.row_cnt}:M{self.row_cnt}')
+        self.sheet[f'D{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
+
+        self.row_cnt += 2
+
+        self.sheet.merge_cells(f'A{self.row_cnt}:C{self.row_cnt}')
+        self.sheet[f'A{self.row_cnt}'] = 'Datum: '
+        self.sheet[f'A{self.row_cnt}'].alignment = Alignment(horizontal='right')
+
+        self.sheet.merge_cells(f'D{self.row_cnt}:G{self.row_cnt}')
+        self.sheet[f'D{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
+
+        self.sheet.merge_cells(f'H{self.row_cnt}:I{self.row_cnt}')
+        self.sheet[f'H{self.row_cnt}'] = 'Třída:  '
+        self.sheet[f'H{self.row_cnt}'].alignment = Alignment(horizontal='right')
+
+        self.sheet.merge_cells(f'J{self.row_cnt}:M{self.row_cnt}')
+        self.sheet[f'J{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
+
+        self.row_cnt += 3
+
+
     def make_task_text(self, task_num, text):
         self.sheet.merge_cells(f'A{self.row_cnt}:O{self.row_cnt}')
         self.sheet[f'A{self.row_cnt}'] = f'{task_num}. {text}'
         self.sheet[f'A{self.row_cnt}'].font = Font(name='Calibri', bold=True)
         self.row_cnt += 2
 
-    def prepare_image_for_cell(self, img_path, col):
+    def add_checkbox_image(self, img_path, col_start):
+
         img = Image(img_path)
 
         cell_width = 99200
         cell_height = 75600
 
         offset_x = int((cell_width - cell_height) / 2)
-        offset_y = 0
 
-        _from = AnchorMarker(col=col, row=self.row_cnt - 1, colOff=offset_x, rowOff=offset_y)
-        to = AnchorMarker(col=col + 1, row=self.row_cnt, colOff=-offset_x, rowOff=-offset_y)
+        _from = AnchorMarker(col=col_start, row=self.row_cnt - 1, colOff=offset_x, rowOff=0)
+        to = AnchorMarker(col=col_start + 1, row=self.row_cnt, colOff=-offset_x, rowOff=0)
         img.anchor = TwoCellAnchor(editAs="twoCell", _from=_from, to=to)
 
-        return img
+        self.sheet.add_image(img)
+
+    def add_image(self, img_path):
+
+        img = Image(img_path)
+
+        cell_height = 75600
+        max_width =  1688400
+
+        img_width = img.width
+        img_height = img.height
+
+        new_height = (img_height * max_width) / img_width
+        rows = int(new_height / cell_height)
+
+        offset_x = 0
+        offset_y = int((new_height % cell_height) / 2)
+
+        _from = AnchorMarker(col=2, row=self.row_cnt - 1, colOff=offset_x, rowOff=offset_y)
+        to = AnchorMarker(col=13, row=self.row_cnt + rows, colOff=-offset_x, rowOff=-offset_y)
+        img.anchor = TwoCellAnchor(editAs="twoCell", _from=_from, to=to)
+
+        self.shift_task_to_next_page(rows + 3)
+
+        self.sheet.add_image(img)
+        self.row_cnt += rows + 2
+
+    def shift_task_to_next_page(self, task_rows):
+        rows_per_page = 50
+
+        # if at least one half of task is in another page
+        if (self.row_cnt % rows_per_page) + (task_rows / 2) > rows_per_page:
+
+            rows = rows_per_page - (self.row_cnt % rows_per_page)
+            self.row_cnt += rows
+
+
+    def make_two_choices_task(self, task):
+
+        questions = task.question_set.all()
+        options = questions[0].option_set.all() if len(questions) else []
+
+        # Shift task to another page if task is too long
+        task_rows = 4 + (2 * len(questions))
+        self.shift_task_to_next_page(task_rows)
+
+        self.make_task_text(self.task_cnt + 1, task.text)
+
+        self.sheet.merge_cells(f'F{self.row_cnt}:J{self.row_cnt}')
+        self.sheet[f'F{self.row_cnt}'] = options[0].text
+        self.sheet[f'F{self.row_cnt}'].alignment = Alignment(horizontal='center')
+
+        self.sheet.merge_cells(f'K{self.row_cnt}:M{self.row_cnt}')
+        self.sheet[f'K{self.row_cnt}'] = options[1].text
+        self.sheet[f'K{self.row_cnt}'].alignment = Alignment(horizontal='center')
+        self.row_cnt += 1
+
+        self.sheet.row_dimensions[self.row_cnt].height = 10
+        self.row_cnt += 1
+
+        return questions
+
+
+    def make_choices_task(self, task):
+
+        question = task.question_set.first()
+        options = question.option_set.all()
+
+        # Shift task to another page if task is too long
+        task_rows = 4 + (2 * len(question.option_set.all()))
+        self.shift_task_to_next_page(task_rows)
+
+        self.make_task_text(self.task_cnt + 1, task.text)
+
+        self.sheet.merge_cells(f'B{self.row_cnt}:O{self.row_cnt}')
+        self.sheet[f'B{self.row_cnt}'] = question.text
+        self.row_cnt += 1
+
+        self.sheet.row_dimensions[self.row_cnt].height = 10
+        self.row_cnt += 1
+
+        return options
+
+
+    def make_choices_picture_task(self, task):
+
+        question = task.question_set.first()
+        options = question.option_set.all()
+
+        self.make_task_text(self.task_cnt + 1, task.text)
+
+        if task.image:
+            self.add_image(task.image.path)
+
+        # Shift task to another page if task is too long
+        task_rows = 1 + (2 * len(options))
+        self.shift_task_to_next_page(task_rows)
+
+        return options
+
+
+    def make_multiple_choices_picture_task(self, task):
+
+        question = task.question_set.first()
+
+        self.make_task_text(self.task_cnt + 1, task.text)
+
+        if task.image:
+            self.add_image(task.image.path)
+
+        all_options = [option.text for option in question.option_set.all()]
+
+        self.sheet.merge_cells(f'A{self.row_cnt}:O{self.row_cnt}')
+        self.sheet[f'A{self.row_cnt}'] = f'Výběr pojmů: {", ".join(all_options)}'
+        self.row_cnt += 2
+
+        return all_options
+
+    def make_pairs_task(self, task):
+
+        questions = task.question_set.all()
+        options = list(questions[0].option_set.all() if len(questions) else [])
+
+        # Shift task to another page if task is too long
+        task_rows = 2 + (2 * len(questions))
+        self.shift_task_to_next_page(task_rows)
+
+        self.make_task_text(self.task_cnt + 1, task.text)
+
+        return questions, options
+
 
     def post(self, request, **kwargs):
 
@@ -317,7 +475,7 @@ class BaseWorksheetExportView(View):
 
         tasks = self.worksheet.task_set.all()
         for task_num, task in enumerate(tasks):
-            self.make_task_text(task_num + 1, task.text)
+            self.task_cnt = task_num + 1
 
             if task.type.type == TaskType.Type.TWO_CHOICES:
                 self.make_two_choices_task(task)
@@ -334,9 +492,7 @@ class BaseWorksheetExportView(View):
             elif task.type.type == TaskType.Type.PAIRS:
                 self.make_pairs_task(task)
 
-
             self.row_cnt += 2
-
 
         self.row_cnt += 1
 
@@ -356,20 +512,7 @@ class WorksheetExportView(BaseWorksheetExportView):
 
     def make_two_choices_task(self, task):
 
-        questions = task.question_set.all()
-        options = questions[0].option_set.all() if len(questions) else []
-
-        self.sheet.merge_cells(f'F{self.row_cnt}:J{self.row_cnt}')
-        self.sheet[f'F{self.row_cnt}'] = options[0].text
-        self.sheet[f'F{self.row_cnt}'].alignment = Alignment(horizontal='center')
-
-        self.sheet.merge_cells(f'K{self.row_cnt}:M{self.row_cnt}')
-        self.sheet[f'K{self.row_cnt}'] = options[1].text
-        self.sheet[f'K{self.row_cnt}'].alignment = Alignment(horizontal='center')
-        self.row_cnt += 1
-
-        self.sheet.row_dimensions[self.row_cnt].height = 10
-        self.row_cnt += 1
+        questions = super().make_two_choices_task(task)
 
         img_path = os.path.join(settings.STATIC_ROOT, 'box.jpeg')
 
@@ -377,11 +520,8 @@ class WorksheetExportView(BaseWorksheetExportView):
             self.sheet.merge_cells(f'B{self.row_cnt}:E{self.row_cnt}')
             self.sheet[f'B{self.row_cnt}'] = question.text
 
-            box_1 = self.prepare_image_for_cell(img_path, col=7)
-            box_2 = self.prepare_image_for_cell(img_path, col=11)
-
-            self.sheet.add_image(box_1)
-            self.sheet.add_image(box_2)
+            self.add_checkbox_image(img_path, col_start=7)
+            self.add_checkbox_image(img_path, col_start=11)
 
             self.row_cnt += 1
             self.sheet.row_dimensions[self.row_cnt].height = 10
@@ -389,38 +529,28 @@ class WorksheetExportView(BaseWorksheetExportView):
 
     def make_choices_task(self, task):
 
-        questions = task.question_set.all()
+        options = super().make_choices_task(task)
 
-        for question in questions:
-            self.sheet.merge_cells(f'B{self.row_cnt}:O{self.row_cnt}')
-            self.sheet[f'B{self.row_cnt}'] = question.text
+        char = ord('a')
+        for option in options:
+            self.sheet[f'C{self.row_cnt}'] = f'{chr(char)})'
+            self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='center')
+            char += 1
+
+            self.sheet.merge_cells(f'D{self.row_cnt}:O{self.row_cnt}')
+            self.sheet[f'D{self.row_cnt}'] = option.text
             self.row_cnt += 1
 
             self.sheet.row_dimensions[self.row_cnt].height = 10
             self.row_cnt += 1
 
-            char = ord('a')
-            for option in question.option_set.all():
-                self.sheet[f'C{self.row_cnt}'] = f'{chr(char)})'
-                self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='center')
-                char += 1
-
-                self.sheet.merge_cells(f'D{self.row_cnt}:O{self.row_cnt}')
-                self.sheet[f'D{self.row_cnt}'] = option.text
-                self.row_cnt += 1
-
-                self.sheet.row_dimensions[self.row_cnt].height = 10
-                self.row_cnt += 1
-
 
     def make_choices_picture_task(self, task):
 
-        question = task.question_set.first()
+        options = super().make_choices_picture_task(task)
 
-        self.sheet.merge_cells(f'C{self.row_cnt}:M{self.row_cnt + 5}')
-        self.row_cnt += 7
         char = ord('a')
-        for option in question.option_set.all():
+        for option in options:
             self.sheet.merge_cells(f'E{self.row_cnt}:M{self.row_cnt}')
             self.sheet[f'E{self.row_cnt}'] = f'{chr(char)}) {option.text}'
             self.row_cnt += 1
@@ -430,18 +560,9 @@ class WorksheetExportView(BaseWorksheetExportView):
             self.row_cnt += 1
 
 
-
     def make_multiple_choices_picture_task(self, task):
 
-        question = task.question_set.first()
-
-        self.sheet.merge_cells(f'C{self.row_cnt}:M{self.row_cnt + 5}')
-        self.row_cnt += 7
-
-        self.sheet.merge_cells(f'A{self.row_cnt}:O{self.row_cnt}')
-        all_options = [option.text for option in question.option_set.all()]
-        self.sheet[f'A{self.row_cnt}'] = f'Výběr pojmů: {", ".join(all_options)}'
-        self.row_cnt += 3
+        all_options = super().make_multiple_choices_picture_task(task)
 
         for i in range(len(all_options)):
 
@@ -449,15 +570,15 @@ class WorksheetExportView(BaseWorksheetExportView):
                 self.sheet[f'C{self.row_cnt}'] = f'{i + 1}.  '
                 self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='right')
 
-                for col in ['D', 'E', 'F', 'G']:
-                    self.sheet[f'{col}{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
+                self.sheet.merge_cells(f'D{self.row_cnt}:G{self.row_cnt}')
+                self.sheet[f'D{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
 
             else:
                 self.sheet[f'I{self.row_cnt}'] = f'{i + 1}.  '
                 self.sheet[f'I{self.row_cnt}'].alignment = Alignment(horizontal='right')
 
-                for col in ['J', 'K', 'L', 'M']:
-                    self.sheet[f'{col}{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
+                self.sheet.merge_cells(f'J{self.row_cnt}:M{self.row_cnt}')
+                self.sheet[f'J{self.row_cnt}'].border = Border(bottom=Side(style='thin'))
                 self.row_cnt += 1
 
 
@@ -469,25 +590,23 @@ class WorksheetExportView(BaseWorksheetExportView):
 
     def make_pairs_task(self, task):
 
-            questions = task.question_set.all()
-            options = list(questions[0].option_set.all() if len(questions) else [])
+        questions, options = super().make_pairs_task(task)
 
-            shuffle(options)
+        shuffle(options)
 
-            for i, question in enumerate(questions):
-                self.sheet.merge_cells(f'C{self.row_cnt}:F{self.row_cnt}')
-                self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='center')
-                self.sheet[f'C{self.row_cnt}'] = question.text
+        for i, question in enumerate(questions):
+            self.sheet.merge_cells(f'C{self.row_cnt}:F{self.row_cnt}')
+            self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='center')
+            self.sheet[f'C{self.row_cnt}'] = question.text
 
-                self.sheet.merge_cells(f'J{self.row_cnt}:M{self.row_cnt}')
-                self.sheet[f'J{self.row_cnt}'].alignment = Alignment(horizontal='center')
-                self.sheet[f'J{self.row_cnt}'] = options[i].text
+            self.sheet.merge_cells(f'J{self.row_cnt}:M{self.row_cnt}')
+            self.sheet[f'J{self.row_cnt}'].alignment = Alignment(horizontal='center')
+            self.sheet[f'J{self.row_cnt}'] = options[i].text
 
-                self.row_cnt += 1
+            self.row_cnt += 1
 
-                self.sheet.row_dimensions[self.row_cnt].height = 10
-                self.row_cnt += 1
-
+            self.sheet.row_dimensions[self.row_cnt].height = 10
+            self.row_cnt += 1
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -495,20 +614,7 @@ class WorksheetExportWithAnswersView(BaseWorksheetExportView):
 
     def make_two_choices_task(self, task):
 
-        questions = task.question_set.all()
-        options = questions[0].option_set.all() if len(questions) else []
-
-        self.sheet.merge_cells(f'F{self.row_cnt}:J{self.row_cnt}')
-        self.sheet[f'F{self.row_cnt}'] = options[0].text
-        self.sheet[f'F{self.row_cnt}'].alignment = Alignment(horizontal='center')
-
-        self.sheet.merge_cells(f'K{self.row_cnt}:M{self.row_cnt}')
-        self.sheet[f'K{self.row_cnt}'] = options[1].text
-        self.sheet[f'K{self.row_cnt}'].alignment = Alignment(horizontal='center')
-        self.row_cnt += 1
-
-        self.sheet.row_dimensions[self.row_cnt].height = 10
-        self.row_cnt += 1
+        questions = super().make_two_choices_task(task)
 
         box_path = os.path.join(settings.STATIC_ROOT, 'box.jpeg')
         checked_box_path = os.path.join(settings.STATIC_ROOT, 'checked_box.jpeg')
@@ -521,60 +627,47 @@ class WorksheetExportWithAnswersView(BaseWorksheetExportView):
             correct_option = options.filter(is_correct=True).first()
 
             if correct_option.text == options[0].text:
-                box = self.prepare_image_for_cell(box_path, col=7)
-                checked_box = self.prepare_image_for_cell(checked_box_path, col=11)
+                self.add_checkbox_image(box_path, col_start=7)
+                self.add_checkbox_image(checked_box_path, col_start=11)
             else:
-                box = self.prepare_image_for_cell(box_path, col=11)
-                checked_box = self.prepare_image_for_cell(checked_box_path, col=7)
-
-            self.sheet.add_image(box)
-            self.sheet.add_image(checked_box)
+                self.add_checkbox_image(box_path, col_start=11)
+                self.add_checkbox_image(checked_box_path, col_start=7)
 
             self.row_cnt += 1
             self.sheet.row_dimensions[self.row_cnt].height = 10
             self.row_cnt += 1
+
 
     def make_choices_task(self, task):
 
-        questions = task.question_set.all()
+        options = super().make_choices_task(task)
 
-        for question in questions:
-            self.sheet.merge_cells(f'B{self.row_cnt}:O{self.row_cnt}')
-            self.sheet[f'B{self.row_cnt}'] = question.text
+        char = ord('a')
+        for option in options:
+
+            self.sheet[f'C{self.row_cnt}'] = f'{chr(char)})'
+            self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='center')
+            char += 1
+
+            self.sheet.merge_cells(f'D{self.row_cnt}:O{self.row_cnt}')
+            self.sheet[f'D{self.row_cnt}'] = option.text
+
+            if option.is_correct:
+                self.sheet[f'C{self.row_cnt}'].font = Font(name='Calibri', bold=True)
+                self.sheet[f'D{self.row_cnt}'].font = Font(name='Calibri', bold=True)
+
             self.row_cnt += 1
 
             self.sheet.row_dimensions[self.row_cnt].height = 10
             self.row_cnt += 1
-
-            char = ord('a')
-            for option in question.option_set.all():
-
-                self.sheet[f'C{self.row_cnt}'] = f'{chr(char)})'
-                self.sheet[f'C{self.row_cnt}'].alignment = Alignment(horizontal='center')
-                char += 1
-
-                self.sheet.merge_cells(f'D{self.row_cnt}:O{self.row_cnt}')
-                self.sheet[f'D{self.row_cnt}'] = option.text
-
-                if (option.is_correct):
-                    self.sheet[f'C{self.row_cnt}'].font = Font(name='Calibri', bold=True)
-                    self.sheet[f'D{self.row_cnt}'].font = Font(name='Calibri', bold=True)
-
-                self.row_cnt += 1
-
-                self.sheet.row_dimensions[self.row_cnt].height = 10
-                self.row_cnt += 1
 
 
     def make_choices_picture_task(self, task):
 
-        question = task.question_set.first()
-
-        self.sheet.merge_cells(f'C{self.row_cnt}:M{self.row_cnt + 5}')
-        self.row_cnt += 7
+        options = super().make_choices_picture_task(task)
 
         char = ord('a')
-        for option in question.option_set.all():
+        for option in options:
             self.sheet.merge_cells(f'E{self.row_cnt}:M{self.row_cnt}')
             self.sheet[f'E{self.row_cnt}'] = f'{chr(char)}) {option.text}'
 
@@ -590,15 +683,8 @@ class WorksheetExportWithAnswersView(BaseWorksheetExportView):
 
     def make_multiple_choices_picture_task(self, task):
 
+        all_options = super().make_multiple_choices_picture_task(task)
         questions = task.question_set.all()
-
-        self.sheet.merge_cells(f'C{self.row_cnt}:M{self.row_cnt + 5}')
-        self.row_cnt += 7
-
-        self.sheet.merge_cells(f'A{self.row_cnt}:O{self.row_cnt}')
-        all_options = [option.text for option in questions[0].option_set.all()]
-        self.sheet[f'A{self.row_cnt}'] = f'Výběr pojmů: {", ".join(all_options)}'
-        self.row_cnt += 3
 
         for i in range(len(all_options)):
 
@@ -634,8 +720,7 @@ class WorksheetExportWithAnswersView(BaseWorksheetExportView):
 
     def make_pairs_task(self, task):
 
-            questions = task.question_set.all()
-            options = list(questions[0].option_set.all() if len(questions) else [])
+            questions, options = super().make_pairs_task(task)
 
             for i, question in enumerate(questions):
                 self.sheet.merge_cells(f'C{self.row_cnt}:F{self.row_cnt}')
