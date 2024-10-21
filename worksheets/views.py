@@ -344,9 +344,16 @@ class BaseWorksheetExportView(View):
         img_height = img.height
 
         new_height = (img_height * max_width) / img_width
-        rows = int(new_height / cell_height)
-
         offset_x = 0
+
+        # If image is higher than 15 cells
+        if new_height > 15 * cell_height:
+            new_height = 15 * cell_height
+            new_width = (img_width * new_height) / img_height
+
+            offset_x = int((max_width - new_width) * 1.4)
+
+        rows = int(new_height / cell_height)
         offset_y = int((new_height % cell_height) / 2)
 
         _from = AnchorMarker(col=2, row=self.row_cnt - 1, colOff=offset_x, rowOff=offset_y)
