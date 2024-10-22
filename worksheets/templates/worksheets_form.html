@@ -70,6 +70,14 @@
             </div>
 
             <div id="tasksContainer"></div>
+
+            <div id="addTaskButtonContainer" class="flex justify-center mt-4" style="display: none;">
+                <button type="button"
+                        class="bg-pistachio-500 text-white rounded-full w-8 h-8 hover:bg-pistachio-600"
+                        onclick="addTask()">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
         </div>
     </form>
 </div>
@@ -113,12 +121,18 @@
         }
         saveTasks();
         updateTaskNumbers();
+
+        document.getElementById('addTaskButtonContainer').style.display = 'flex';
     }
 
     function removeTask(button) {
         button.parentElement.parentElement.remove();
         saveTasks();
         updateTaskNumbers();
+
+        if (taskCount === 0) {
+            document.getElementById('addTaskButtonContainer').style.display = 'none';
+        }
     }
 
     function updateTaskNumbers() {
