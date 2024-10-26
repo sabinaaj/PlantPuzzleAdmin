@@ -23,13 +23,13 @@ class Worksheet(models.Model):
 
 class Task(models.Model):
     text = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     type = models.ForeignKey(TaskType, on_delete=models.DO_NOTHING, blank=True, null=True)
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
 
 
 class Question(models.Model):
     text = models.TextField(blank=True, null=True)
-    image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     task = models.ForeignKey(Task, on_delete=models.CASCADE)
 
 

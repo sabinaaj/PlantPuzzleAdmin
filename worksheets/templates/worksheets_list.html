@@ -8,10 +8,7 @@
 <div class="max-w-6xl mx-auto py-8">
     <!-- Header with large icon and title -->
     <div class="flex items-center mb-8">
-        <svg class="h-16 w-16 text-gray-500 mr-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-             stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-        </svg>
+        <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
         <h1 class="text-3xl font-bold text-gray-700">Oblast</h1>
     </div>
 
@@ -35,8 +32,8 @@
             <tr class="text-xs font-semibold text-gray-700 uppercase bg-gray-200">
                 <th class="py-2 px-4 w-1/2 text-left">Název
                 </th>
-                <th class="py-2 px-4">Export bez odpovědí</th>
-                <th class="py-2 px-4">Export s odpověďmi</th>
+                <th class="py-2 px-4">Stáhnout bez odpovědí</th>
+                <th class="py-2 px-4">Stáhnout s odpověďmi</th>
                 <th class="py-2 px-4">Upravit</th>
                 <th class="py-2 px-4">Smazat</th>
             </tr>
@@ -44,19 +41,21 @@
             <tbody>
 
             {% for worksheet in worksheets %}
-            <tr class="border-b  cursor-pointer hover:bg-gray-50">
+            <tr class="border-b  cursor-pointer">
                 <td class="py-3 px-4 text-gray-700 text-left max-w-full">{{ worksheet.title }}</td>
                 <td class="py-3 px-4 text-center">
                     <form method="post" action="{% url 'worksheets:worksheets_export' area.pk worksheet.pk %}" class="inline">
                         <button type="submit">
-                            <i class="fas fa-file-export fa-lg text-pistachio-500 hover:text-pistachio-600"></i>
+                            <i class="fas fa-file-export fa-lg text-brown-500 hover:text-brown-600"></i>
                         </button>
                     </form>
                 </td>
                 <td class="py-3 px-4 text-center">
-                    <a href="{% url 'worksheets:worksheets_export_with_answers' area.pk worksheet.pk %}">
-                        <i class="fas fa-file-export fa-lg text-blue-400 hover:text-blue-500 cursor-pointer"></i>
-                    </a>
+                    <form method="post" action="{% url 'worksheets:worksheets_export_with_answers' area.pk worksheet.pk %}" class="inline">
+                        <button type="submit">
+                            <i class="fas fa-file-export fa-lg text-brown-700 hover:text-brown-800 cursor-pointer"></i>
+                        </button>
+                    </form>
                 </td>
                 <td class="py-3 px-4 text-center">
                     <a href="{% url 'worksheets:worksheets_update' area.pk worksheet.pk %}">
@@ -72,7 +71,7 @@
 
             {% empty %}
             <tr class="border-b">
-                <td class="py-3 px-4 text-gray-700 text-left max-w-full">Žádné pracovní listy nebyly nalezeny</td>
+                <td class="py-3 px-4 text-gray-700 text-left max-w-full">Žádné pracovní listy nebyly nalezeny.</td>
             </tr>
 
             {% endfor %}
