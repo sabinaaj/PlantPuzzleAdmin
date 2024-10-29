@@ -87,9 +87,9 @@
      let taskCount = 0;
     let rowCounter = 2;
 
-    document.addEventListener("DOMContentLoaded", function() {
-        restoreTasks();
-    });
+    {#document.addEventListener("DOMContentLoaded", function() {#}
+    {#    restoreTasks();#}
+    {#);#}
 
     function addTask(data = {}) {
         taskCount++;
@@ -173,10 +173,9 @@
         sessionStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
-    function restoreTasks() {
-        const tasks = JSON.parse(sessionStorage.getItem('tasks')) || [];
-        tasks.forEach(taskData => addTask(taskData));
-    }
+    {#function restoreTasks() {#}
+    {#    const tasks = JSON.parse(sessionStorage.getItem('tasks')) || [];#}
+    {#    tasks.forEach(taskData => addTask(taskData));#}
 
     function addQuestionWithRadio(taskId) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
@@ -199,7 +198,6 @@
             questionsContainer.appendChild(questionRow);
             rowCounter++;
 
-            let
         } else {
             alert('Maximální počet otázek je 20.');
         }
