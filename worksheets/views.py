@@ -1,8 +1,7 @@
-from django.views.generic import View, CreateView, ListView, DeleteView
+from django.views.generic import View, CreateView, UpdateView, ListView, DeleteView
 from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect
-from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -28,38 +27,37 @@ logger = logging.getLogger(__name__)
 
 class WorksheetListView(ListView):
     model = Worksheet
-    template_name = "worksheets_list.html"
+    template_name = 'worksheets_list.html'
 
     def dispatch(self, request, *args, **kwargs):
-        self.area = get_object_or_404(Area, pk=kwargs["area"])
+        self.area = get_object_or_404(Area, pk=kwargs['area'])
 
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["area"] = self.area
-        context["worksheets"] = Worksheet.objects.filter(area=self.area)
+        context['area'] = self.area
+        context['worksheets'] = Worksheet.objects.filter(area=self.area)
 
         return context
 
-
-class WorksheetCreateView(CreateView):
-    template_name = "worksheets_form.html"
+class BaseWorksheetView(View):
+    template_name = 'worksheets_form.html'
     form_class = WorksheetForm
     model = Worksheet
 
     def dispatch(self, request, *args, **kwargs):
-        self.area = get_object_or_404(Area, pk=kwargs["area"])
+        self.area = get_object_or_404(Area, pk=kwargs['area'])
 
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["area"] = self.area
-        context["school_groups"] = SchoolGroup.objects.all()
-        context["task_types"] = TaskType.objects.all()
+        context['area'] = self.area
+        context['school_groups'] = SchoolGroup.objects.all()
+        context['task_types'] = TaskType.objects.all()
 
         return context
 
@@ -69,36 +67,8 @@ class WorksheetCreateView(CreateView):
     def form_invalid(self, form):
         return HttpResponseRedirect(self.get_success_url())
 
-    def post(self, request, *args, **kwargs):
-        form = self.get_form()
-        form.instance.area = self.area
-
-        if not form.is_valid():
-            return self.form_invalid(form)
-
-        self.worksheet = form.save()
-
-        logger.warning("post: %s", request.POST)
-
-        tasks = {k:v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
-        logger.warning("tasks: %s", tasks)
-
-        for task_type, value in tasks.items():
-            task_num =re.findall(r'\d+', task_type)[0]
-
-            if value == '1':
-                self.create_type_1_task(request, task_num)
-            elif value == '2':
-                self.create_type_2_or_3_task(request, task_num)
-            elif value == '3':
-                self.create_type_2_or_3_task(request, task_num, image=True)
-            elif value == '4':
-                self.create_type_4_task(request, task_num)
-            elif value == '5':
-                self.create_type_5_task(request, task_num)
-
-
-        return super().post(request, *args, **kwargs)
+    def get_success_url(self):
+        return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
 
     def create_type_1_task(self, request, task_num):
 
@@ -111,7 +81,7 @@ class WorksheetCreateView(CreateView):
         option_text_0 = request.POST.get(f'option_{task_num}-0-text')
         option_text_1 = request.POST.get(f'option_{task_num}-1-text')
 
-        questions = {k:v for (k, v) in request.POST.items() if k.startswith(f"question_{task_num}") and k.endswith('text')}
+        questions = {k:v for (k, v) in request.POST.items() if k.startswith(f'question_{task_num}') and k.endswith('text')}
         for question_name, question_text in questions.items():
 
             question_num = re.findall(r'\d+', question_name)[1]
@@ -154,7 +124,7 @@ class WorksheetCreateView(CreateView):
                 text=request.POST.get(f'question_{task_num}-text')
             )
 
-        options = {k:v for (k, v) in request.POST.items() if k.startswith(f"option_{task_num}") and k.endswith('text')}
+        options = {k:v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')}
 
         for option_name, option_text in options.items():
             option_num = re.findall(r'\d+', option_name)[1]
@@ -175,8 +145,8 @@ class WorksheetCreateView(CreateView):
             image=request.FILES.get(f'question_{task_num}-image')
         )
 
-        options = [v for (k, v) in request.POST.items() if k.startswith(f"option_{task_num}") and k.endswith('text')]
-        options_correct = [v for (k, v) in request.POST.items() if k.startswith(f"option_{task_num}") and k.endswith('is_correct')]
+        options = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')]
+        options_correct = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('is_correct')]
 
         question_cnt = int(request.POST.get(f'question_{task_num}-counter'))
         for i in range(question_cnt):
@@ -203,8 +173,8 @@ class WorksheetCreateView(CreateView):
             text=request.POST.get(f'task-{task_num}-text')
         )
 
-        questions = {k: v for (k, v) in request.POST.items() if k.startswith(f"question_{task_num}") and k.endswith('text')}
-        options = {k:v for (k, v) in request.POST.items() if k.startswith(f"option_{task_num}") and k.endswith('text')}
+        questions = {k: v for (k, v) in request.POST.items() if k.startswith(f'question_{task_num}') and k.endswith('text')}
+        options = {k:v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')}
 
         for question_name, question_text in questions.items():
             question_num = re.findall(r'\d+', question_name)[1]
@@ -215,7 +185,7 @@ class WorksheetCreateView(CreateView):
             )
 
             for option_name, option_text in options.items():
-                logger.warning("question: %s %s", option_name, 'option_'+task_num+'-'+question_num+'-text')
+                logger.warning('question: %s %s', option_name, 'option_'+task_num+'-'+question_num+'-text')
                 is_correct = True if option_name==('option_'+task_num+'-'+question_num+'-text') else False
 
                 Option.objects.create(
@@ -224,17 +194,195 @@ class WorksheetCreateView(CreateView):
                     is_correct=is_correct
                 )
 
-    def get_success_url(self):
-        return reverse("worksheets:worksheets_list", kwargs={"area": self.area.pk})
+class WorksheetCreateView(BaseWorksheetView, CreateView):
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        form.instance.area = self.area
+
+        if not form.is_valid():
+            return self.form_invalid(form)
+
+        self.worksheet = form.save()
+        logger.warning('post: %s', request.POST)
+
+        school_group_ids = request.POST.getlist('school_group')
+        self.worksheet.school_groups.set(school_group_ids)
+        self.worksheet.save()
+
+        tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
+        logger.warning('tasks: %s', self.worksheet.school_groups)
+
+        for task_type, value in tasks.items():
+            task_num = re.findall(r'\d+', task_type)[0]
+
+            if value == '1':
+                self.create_type_1_task(request, task_num)
+            elif value == '2':
+                self.create_type_2_or_3_task(request, task_num)
+            elif value == '3':
+                self.create_type_2_or_3_task(request, task_num, image=True)
+            elif value == '4':
+                self.create_type_4_task(request, task_num)
+            elif value == '5':
+                self.create_type_5_task(request, task_num)
+
+        return super().post(request, *args, **kwargs)
+
+
+class WorksheetUpdateView(BaseWorksheetView, UpdateView):
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        worksheet = self.get_object()
+        context['tasks_data'] = [
+            {
+                'id': task.id,
+                'type': task.type.id,
+                'text': task.text or '',
+                'image': task.image.url if task.image else '',
+                'questions': self.prepare_task_data(task),
+            }
+            for task in worksheet.task_set.all()
+        ]
+
+        context['selected_school_groups'] = list(worksheet.school_groups.all().values_list('pk', flat=True))
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = self.get_form()
+        form.instance.area = self.area
+
+        self.worksheet = self.get_object()
+        form.instance = self.worksheet
+
+        if not form.is_valid():
+            return self.form_invalid(form)
+
+        form.save()
+
+        school_group_ids = request.POST.getlist('school_group')
+        self.worksheet.school_groups.set(school_group_ids)
+        self.worksheet.save()
+
+        # delete all tasks
+        self.worksheet.task_set.all().delete()
+
+        logger.warning('post: %s', request.POST)
+
+        tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
+        logger.warning('tasks: %s', tasks)
+
+        for task_type, value in tasks.items():
+            task_num = re.findall(r'\d+', task_type)[0]
+
+            if value == '1':
+                self.create_type_1_task(request, task_num)
+            elif value == '2':
+                self.create_type_2_or_3_task(request, task_num)
+            elif value == '3':
+                self.create_type_2_or_3_task(request, task_num, image=True)
+            elif value == '4':
+                self.create_type_4_task(request, task_num)
+            elif value == '5':
+                self.create_type_5_task(request, task_num)
+
+        return super().post(request, *args, **kwargs)
+
+    def prepare_task_data(self, task):
+
+        if task.type.id == 1:
+            questions = self.prepare_type_1_task_data(task)
+        elif task.type.id == 2:
+            questions = self.prepare_type_2_or_3_task_data(task)
+        elif task.type.id == 3:
+            questions = self.prepare_type_2_or_3_task_data(task)
+        elif task.type.id == 4:
+            questions = self.prepare_type_4_task_data(task)
+        elif task.type.id == 5:
+            questions = self.prepare_type_5_task_data(task)
+
+        return questions if questions else []
+
+
+    def prepare_type_1_task_data(self, task):
+        questions = task.question_set.all()
+        options = questions[0].option_set.all() if questions else []
+
+        return {
+            'rows': questions.count(),
+            'options': [option.text if option.text else "" for option in options],
+            'questions': [
+                {
+                    'text': question.text if question.text else "",
+                    'correct': 0 if question.option_set.first().is_correct else 1,
+                }
+                for question in questions
+            ],
+        }
+
+    def prepare_type_2_or_3_task_data(self, task):
+        question = task.question_set.first()
+        options = question.option_set.all() if question else []
+
+        return {
+            'rows': options.count(),
+            'question': question.text if question.text else '',
+            'options': [
+                {'text': option.text if option.text else '',
+                 'correct': 'on' if option.is_correct else ''}
+                for option in options
+            ],
+        }
+
+    def prepare_type_4_task_data(self, task):
+
+        questions = task.question_set.all()
+        options = questions[0].option_set.all() if questions[0] else []
+
+        correct_answers = []
+        for question in questions:
+            correct_option = question.option_set.filter(is_correct=True).first().text
+            correct_answers.append((question.text, correct_option))
+
+        return {
+            'rows': options.count(),
+            'questions': task.question_set.count(),
+            'options': [
+                {
+                    'text': option.text if option.text else '',
+                    'correct': [answer[0] for answer in correct_answers if answer[1] == option.text],
+                }
+                for option in options
+            ],
+        }
+
+    def prepare_type_5_task_data(self, task):
+        questions = task.question_set.all()
+
+        return {
+            'rows': questions.count(),
+            'questions': [
+                {
+                    'text': question.text if question.text else '',
+                    'correct': question.option_set.filter(is_correct=True).first().text
+                    if question.option_set.filter(is_correct=True).exists()
+                    else '',
+                }
+                for question in questions
+            ],
+        }
 
 
 class LoadTaskFormView(View):
     template_mapping = {
-        "1": "task_type_1.html",
-        "2": "task_type_2.html",
-        "3": "task_type_3.html",
-        "4": "task_type_4.html",
-        "5": "task_type_5.html",
+        '1': 'task_type_1.html',
+        '2': 'task_type_2.html',
+        '3': 'task_type_3.html',
+        '4': 'task_type_4.html',
+        '5': 'task_type_5.html',
     }
 
     def get(self, request, *args, **kwargs):
@@ -252,13 +400,12 @@ class WorksheetDeleteView(DeleteView):
     model = Worksheet
 
     def dispatch(self, request, *args, **kwargs):
-        self.area = get_object_or_404(Area, pk=kwargs["area"])
+        self.area = get_object_or_404(Area, pk=kwargs['area'])
 
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse("worksheets:worksheets_list", kwargs={"area": self.area.pk})
-
+        return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
 
 
 class BaseWorksheetExportView(View):
@@ -269,7 +416,7 @@ class BaseWorksheetExportView(View):
     task_cnt = 0
 
     def dispatch(self, request, *args, **kwargs):
-        self.worksheet = get_object_or_404(Worksheet, pk=kwargs["pk"])
+        self.worksheet = get_object_or_404(Worksheet, pk=kwargs['pk'])
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -329,7 +476,7 @@ class BaseWorksheetExportView(View):
 
         _from = AnchorMarker(col=col_start, row=self.row_cnt - 1, colOff=offset_x, rowOff=0)
         to = AnchorMarker(col=col_start + 1, row=self.row_cnt, colOff=-offset_x, rowOff=0)
-        img.anchor = TwoCellAnchor(editAs="twoCell", _from=_from, to=to)
+        img.anchor = TwoCellAnchor(editAs='twoCell', _from=_from, to=to)
 
         self.sheet.add_image(img)
 
@@ -358,7 +505,7 @@ class BaseWorksheetExportView(View):
 
         _from = AnchorMarker(col=2, row=self.row_cnt - 1, colOff=offset_x, rowOff=offset_y)
         to = AnchorMarker(col=13, row=self.row_cnt + rows, colOff=-offset_x, rowOff=-offset_y)
-        img.anchor = TwoCellAnchor(editAs="twoCell", _from=_from, to=to)
+        img.anchor = TwoCellAnchor(editAs='twoCell', _from=_from, to=to)
 
         self.shift_task_to_next_page(rows + 3)
 
@@ -474,10 +621,7 @@ class BaseWorksheetExportView(View):
 
         workbook = Workbook()
         self.sheet = workbook.active
-
-        column_widths = [3, 3, 3, 9, 6, 6, 3, 3, 6, 3, 9, 3, 9, 3, 3]
-        self.change_column_width(column_widths)
-
+        self.change_column_width([3, 3, 3, 9, 6, 6, 3, 3, 6, 3, 9, 3, 9, 3, 3])
         self.make_header()
 
         tasks = self.worksheet.task_set.all()
@@ -508,13 +652,13 @@ class BaseWorksheetExportView(View):
             tmp.seek(0)
             stream = tmp.read()
 
-        response = HttpResponse(content=stream, content_type="application/ms-excel", )
-        response["Access-Control-Expose-Headers"] = f"Content-Disposition"
-        response["Content-Disposition"] = f"attachment; filename=pracovni_list.xlsx"
+        response = HttpResponse(content=stream, content_type='application/ms-excel', )
+        response['Access-Control-Expose-Headers'] = f'Content-Disposition'
+        response['Content-Disposition'] = f'attachment; filename=pracovni_list.xlsx'
         return response
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class WorksheetExportView(BaseWorksheetExportView):
 
     def make_two_choices_task(self, task):
@@ -616,7 +760,7 @@ class WorksheetExportView(BaseWorksheetExportView):
             self.row_cnt += 1
 
 
-@method_decorator(csrf_exempt, name="dispatch")
+@method_decorator(csrf_exempt, name='dispatch')
 class WorksheetExportWithAnswersView(BaseWorksheetExportView):
 
     def make_two_choices_task(self, task):
@@ -696,7 +840,7 @@ class WorksheetExportWithAnswersView(BaseWorksheetExportView):
         for i in range(len(all_options)):
 
             question = questions.filter(text=i + 1).first()
-            correct_answer = question.option_set.get(is_correct=True).text
+            correct_answer = question.option_set.get(is_correct=True).text if question.option_set.get(is_correct=True) else ''
 
             if i % 2 == 0:
                 self.sheet[f'C{self.row_cnt}'] = f'{i + 1}.  '
