@@ -25,7 +25,7 @@
             <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="flex items-center space-x-4 hover:underline overflow-hidden">
                 <div class="flex-shrink-0">
                     {% if area.icon %}
-                    <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-14 w-12 rounded-full">
+                    <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-14">
                     {% else %}
                      <img src="{% static 'area_placeholder.png' %}" class="h-14">
                     {% endif %}
