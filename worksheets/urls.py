@@ -1,7 +1,7 @@
 from django.urls import path
 
 from .views import WorksheetListView, WorksheetCreateView, LoadTaskFormView, WorksheetDeleteView, WorksheetExportView, \
-                   WorksheetExportWithAnswersView, WorksheetUpdateView
+                   WorksheetExportWithAnswersView, WorksheetUpdateView, CheckFormDataAjaxView
 
 app_name = "worksheets"
 
@@ -14,5 +14,6 @@ urlpatterns = [
     path("<int:area>/export_with_answers/<int:pk>", WorksheetExportWithAnswersView.as_view(), name="worksheets_export_with_answers"),
 
     path('load_task_form/<str:task_type>/', LoadTaskFormView.as_view(), name='load_task_form'),
+    path('check_form_data/', CheckFormDataAjaxView.as_view(), name='check_form_data'),
 ]
 

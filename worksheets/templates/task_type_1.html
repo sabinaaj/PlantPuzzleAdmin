@@ -1,27 +1,27 @@
 {% load static %}
 
 <div class="mb-4">
-    {% include 'forms/input.html' with id='task-TaskId-text' name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' %}
+    {% include 'forms/input.html' with name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' errors='' %}
 </div>
 <div class="grid grid-cols-3 gap-4 mb-4">
     <div></div>
     <div>
-        {% include 'forms/input.html' with id='option_TaskId-0-text' name='option_TaskId-0-text' label='1. možnost' placeholder='1. možnost' value='' %}
+        {% include 'forms/input.html' with name='option_TaskId-0-text' label='1. možnost' placeholder='1. možnost' value='' errors='' %}
     </div>
     <div>
-        {% include 'forms/input.html' with id='option_TaskId-1-text' name='option_TaskId-1-text' label='2. možnost' placeholder='2. možnost' value='' %}
+        {% include 'forms/input.html' with name='option_TaskId-1-text' label='2. možnost' placeholder='2. možnost' value='' errors='' %}
     </div>
 </div>
 <div id="QuestionsContainerTaskId">
     <div class="question-form question-row grid grid-cols-3 gap-4 mb-2">
         <div>
-            {% include 'forms/input.html' with id='question_TaskId-0-text' name='question_TaskId-0-text' placeholder='Otázka' label='' value='' %}
+            {% include 'forms/input.html' with name='question_TaskId-0-text' placeholder='Otázka' label='' value='' errors='' %}
         </div>
         <div class="flex items-center justify-center">
-            {% include 'forms/radiobutton.html' with id='option_TaskId-0-is_correct' name='option_TaskId-0-is_correct' value='is_correct_0' %}
+            {% include 'forms/radiobutton.html' with name='option_TaskId-0-is_correct' value='is_correct_0' %}
         </div>
         <div class="flex items-center justify-center">
-            {% include 'forms/radiobutton.html' with id='option_TaskId-0-is_correct' name='option_TaskId-0-is_correct' value='is_correct_1' %}
+            {% include 'forms/radiobutton.html' with name='option_TaskId-0-is_correct' value='is_correct_1' %}
         </div>
     </div>
 </div>

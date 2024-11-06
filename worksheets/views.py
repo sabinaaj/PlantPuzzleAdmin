@@ -1,10 +1,11 @@
 from django.views.generic import View, CreateView, UpdateView, ListView, DeleteView
 from django.template.loader import render_to_string
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect
+from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect, render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from django.contrib import messages
 
 from openpyxl import Workbook, utils as OpenPyXlUtils
 from openpyxl.styles import Alignment, Font, Border, Side
@@ -65,7 +66,8 @@ class BaseWorksheetView(View):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
-        return HttpResponseRedirect(self.get_success_url())
+        messages.error(self.request, "Formulář obsahuje chyby, prosím opravte je a zkuste znovu.")
+        return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
         return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
@@ -105,7 +107,7 @@ class BaseWorksheetView(View):
                 worksheet=self.worksheet,
                 type=TaskType.objects.get(type=TaskType.Type.CHOICES_PICTURE),
                 text=request.POST.get(f'task-{task_num}-text'),
-                image=request.FILES.get(f'question_{task_num}-image')
+                image=request.FILES.get(f'{task_num}-image')
             )
 
             question = Question.objects.create(
@@ -142,7 +144,7 @@ class BaseWorksheetView(View):
             worksheet=self.worksheet,
             type=TaskType.objects.get(type=TaskType.Type.MULTIPLE_CHOICES_PICTURE),
             text=request.POST.get(f'task-{task_num}-text'),
-            image=request.FILES.get(f'question_{task_num}-image')
+            image=request.FILES.get(f'{task_num}-image')
         )
 
         options = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')]
@@ -185,7 +187,6 @@ class BaseWorksheetView(View):
             )
 
             for option_name, option_text in options.items():
-                logger.warning('question: %s %s', option_name, 'option_'+task_num+'-'+question_num+'-text')
                 is_correct = True if option_name==('option_'+task_num+'-'+question_num+'-text') else False
 
                 Option.objects.create(
@@ -199,19 +200,18 @@ class WorksheetCreateView(BaseWorksheetView, CreateView):
     def post(self, request, *args, **kwargs):
         form = self.get_form()
         form.instance.area = self.area
+        self.object = None
 
         if not form.is_valid():
             return self.form_invalid(form)
 
         self.worksheet = form.save()
-        logger.warning('post: %s', request.POST)
 
         school_group_ids = request.POST.getlist('school_group')
         self.worksheet.school_groups.set(school_group_ids)
         self.worksheet.save()
 
         tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
-        logger.warning('tasks: %s', self.worksheet.school_groups)
 
         for task_type, value in tasks.items():
             task_num = re.findall(r'\d+', task_type)[0]
@@ -238,7 +238,6 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
         worksheet = self.get_object()
         context['tasks_data'] = [
             {
-                'id': task.id,
                 'type': task.type.id,
                 'text': task.text or '',
                 'image': task.image.url if task.image else '',
@@ -394,6 +393,76 @@ class LoadTaskFormView(View):
             return JsonResponse({'html': html_content})
         else:
             return JsonResponse({'error': 'Invalid task type'}, status=400)
+
+
+class CheckFormDataAjaxView(View):
+
+    errors = {}
+
+    def post(self, request, *args, **kwargs):
+        self.errors = {}
+        logger.warning('CheckFormDataAjaxView: %s', request.POST)
+        title = request.POST.get('title')
+
+        if not title:
+            self.errors['title'] = "Název je povinný."
+
+        tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
+
+        # images = {k: v for (k, v) in request.POST.items() if k.endswith('image')}
+        # for image_name, image in images.items():
+        #     if not image:
+        #         self.errors[image_name] = 'Obrazek je povinný.'
+
+        questions = {k: v for (k, v) in request.POST.items() if k.startswith('question') and k.endswith('text')}
+        for question_name, question in questions.items():
+            if not question:
+                self.errors[question_name] = 'Toto pole je povinné.'
+
+        options = {k:v for (k, v) in request.POST.items() if k.startswith('option') and k.endswith('text')}
+        for option_name, option in options.items():
+            if not option:
+                self.errors[option_name] = 'Toto pole je povinné.'
+
+
+        for task_type, value in tasks.items():
+            task_num = re.findall(r'\d+', task_type)[0]
+
+            task_text = request.POST.get(f'task-{task_num}-text')
+            if not task_text:
+                self.errors[f'task-{task_num}-text'] = 'Zadání je povinné.'
+
+            if value == '1':
+                self.check_type_1_task_data(request, task_num)
+            elif value == '2':
+                self.check_type_2_or_3_task_data(request, task_num)
+            elif value == '3':
+                self.check_type_2_or_3_task_data(request, task_num)
+            elif value == '4':
+                self.check_type_4_task_data(request, task_num)
+            elif value == '5':
+                self.check_type_5_task_data(request, task_num)
+
+        if self.errors:
+            return JsonResponse({'status': False, 'errors': self.errors})
+
+        return JsonResponse({'status': True})
+
+    def check_type_1_task_data(self, request, task_num):
+
+        task_text = request.POST.get(f'task-{task_num}-text')
+        if not task_text:
+            self.errors[f'task-{task_num}-text'] = 'Zadání je povinné.'
+
+    def check_type_2_or_3_task_data(self, request, task_num):
+        pass
+
+    def check_type_4_task_data(self, request, task_num):
+        pass
+
+    def check_type_5_task_data(self, request, task_num):
+        pass
+
 
 
 class WorksheetDeleteView(DeleteView):
