@@ -84,6 +84,9 @@
 
 
 <script>
+    const maxRows = 20;
+    const minRows = 1;
+
     let taskCount = 0;
     let rowCounter = 2;
 
@@ -124,30 +127,40 @@
         });
     });
 
-    // Funkce pro zobrazení chyb
     function displayErrors(errors) {
-        for (const [field, message] of Object.entries(errors)) {
-            const inputField = document.getElementById(field);
+        let firstErrorField = null;
 
+        for (const [field, message] of Object.entries(errors)) {
+
+            const inputField = document.getElementById(field);
             if (inputField) {
                 inputField.classList.add('ring', 'ring-red-500', 'ring-opacity-30');
-
-                const errorElement = document.getElementById(`${field}-error`);
-                if (errorElement) {
-                   errorElement.textContent = message;
-                }
             }
+
+            const errorElement = document.getElementById(`${field}-error`);
+            if (errorElement) {
+               errorElement.textContent = message;
+            }
+
+            if (!firstErrorField) {
+                firstErrorField = errorElement;
+            }
+        }
+
+        if (firstErrorField) {
+            firstErrorField.scrollIntoView({behavior: 'smooth', block: 'center'});
         }
     }
 
     function clearErrors() {
-        document.querySelectorAll([id$="-error"]).forEach(el => {
+        console.log(document.querySelectorAll(`[id$="error"]`))
+        document.querySelectorAll(`[id$="error"]`).forEach(el => {
             el.textContent = '';
         });
         document.querySelectorAll('input.ring-red-500').forEach(input => {
             input.classList.remove('ring', 'ring-red-500', 'ring-opacity-30');
         });
-}
+    }
 
 
     function addTask(data = {}) {
@@ -184,14 +197,12 @@
             loadTaskForm(taskTypeSelect, taskCount, data);
         }
 
-        saveTasks();
         updateTaskNumbers();
         document.getElementById('addTaskButtonContainer').style.display = 'flex';
     }
 
     function removeTask(button) {
         button.parentElement.parentElement.remove();
-        saveTasks();
         updateTaskNumbers();
 
         if (taskCount === 0) {
@@ -208,192 +219,179 @@
     }
 
     function loadTaskForm(selectElement, taskId, taskData = {}) {
-    const type = selectElement.value;
-    const formContainer = document.getElementById(`formContainer${taskId}`);
+        const type = selectElement.value;
+        const formContainer = document.getElementById(`formContainer${taskId}`);
 
-    if (type) {
-        fetch(`/worksheets/load_task_form/${type}/`)
-            .then(response => response.json())
-            .then(data => {
-                formContainer.innerHTML = data.html.replace(/TaskId/g, taskId);
+        if (type) {
+            fetch(`/worksheets/load_task_form/${type}/`)
+                .then(response => response.json())
+                .then(data => {
+                    formContainer.innerHTML = data.html.replace(/TaskId/g, taskId);
 
-                if (Object.keys(taskData).length > 0) {
-                    populateCommonFields(taskId, taskData);
+                    if (Object.keys(taskData).length > 0) {
+                        populateCommonFields(taskId, taskData);
 
-                    switch (type) {
-                        case '1':
-                            populateTypeOneFields(taskId, taskData.questions);
-                            break;
-                        case '2':
-                        case '3':
-                            populateTypeTwoOrThreeFields(taskId, taskData.questions);
-                            break;
-                        case '4':
-                            populateTypeFourFields(taskId, taskData.questions);
-                            break;
-                        case '5':
-                            populateTypeFiveFields(taskId, taskData.questions);
-                            break;
+                        switch (type) {
+                            case '1':
+                                populateTypeOneFields(taskId, taskData.questions);
+                                break;
+                            case '2':
+                            case '3':
+                                populateTypeTwoOrThreeFields(taskId, taskData.questions);
+                                break;
+                            case '4':
+                                populateTypeFourFields(taskId, taskData.questions);
+                                break;
+                            case '5':
+                                populateTypeFiveFields(taskId, taskData.questions);
+                                break;
+                        }
                     }
-                }
-
-                saveTasks();
-            // })
-            // .catch(error => {
-            //     console.error('Error loading form:', error);
-            //     formContainer.innerHTML = '<p class="text-red-500">Error loading form. Please try again later.</p>';
-            });
-    } else {
-        formContainer.innerHTML = '';
-    }
-}
-
-function populateCommonFields(taskId, taskData) {
-    document.getElementById(`task-${taskId}-text`).value = taskData.text;
-
-    const preview = document.getElementById(`${taskId}-image-preview-name`);
-    const container = document.getElementById(`${taskId}-preview`);
-    if (preview && taskData.image) {
-        preview.src = taskData.image;
-        preview.classList.remove('hidden');
-        container.classList.remove('hidden');
-    }
-}
-
-function populateTypeOneFields(taskId, questions) {
-    document.getElementById(`option_${taskId}-0-text`).value = questions.options[0];
-    document.getElementById(`option_${taskId}-1-text`).value = questions.options[1];
-
-    for (let i = 1; i < questions.rows; i++) {
-        addQuestionWithRadio(taskId);
-    }
-
-    const taskElements = document.querySelectorAll(`[id^="question_${taskId}-"][id$="-text"]`);
-    const leftRadioElements = document.querySelectorAll(`input[id^="option_${taskId}"][id$="-is_correct"][value="is_correct_0"]`);
-    const rightRadioElements = document.querySelectorAll(`input[id^="option_${taskId}"][id$="-is_correct"][value="is_correct_1"]`);
-
-    questions.questions.forEach((question, index) => {
-        if (index < taskElements.length) {
-            taskElements[index].value = question.text;
+                })
+                .catch(error => {
+                    console.error('Error loading form:', error);
+                    formContainer.innerHTML = '<p class="text-red-500">Nastala chyba při načítání formuláře.</p>';
+                });
         } else {
-            console.warn(`More questions than fields found for taskId ${taskId}`);
+            formContainer.innerHTML = '';
         }
-
-        if (question.correct === 0) {
-            leftRadioElements[index].checked = true;
-        } else {
-            rightRadioElements[index].checked = true;
-        }
-    });
-}
-
-function populateTypeTwoOrThreeFields(taskId, questions) {
-    if (questions.question) {
-        document.getElementById(`question_${taskId}-text`).value = questions.question;
     }
 
-    for (let i = 1; i < questions.rows; i++) {
-        addOptionWithCheckbox(taskId);
+    function populateCommonFields(taskId, taskData) {
+        document.getElementById(`task-${taskId}-text`).value = taskData.text;
+
+        const preview = document.getElementById(`${taskId}-image-preview-name`);
+        const imageName = document.getElementById(`${taskId}-image-name`);
+        const container = document.getElementById(`${taskId}-preview`);
+        const originalImage = document.getElementById(`${taskId}-original-image`);
+
+        if (preview && taskData.image) {
+            originalImage.value = taskData.image;
+            imageName.textContent = taskData.image.split('/').pop();
+            preview.src = taskData.image;
+            preview.classList.remove('hidden');
+            container.classList.remove('hidden');
+        }
     }
 
-    const optionElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-text"]`);
-    const checkboxElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-is_correct"]`);
+    function populateTypeOneFields(taskId, questions) {
+        document.getElementById(`option_${taskId}-0-text`).value = questions.options[0];
+        document.getElementById(`option_${taskId}-1-text`).value = questions.options[1];
 
-    questions.options.forEach((option, index) => {
-        if (index < optionElements.length) {
-            optionElements[index].value = option.text;
-        } else {
-            console.warn(`More options than fields found for taskId ${taskId}`);
+        for (let i = 1; i < questions.rows; i++) {
+            addQuestionWithRadio(taskId);
         }
 
-        if (option.correct) {
-            checkboxElements[index].checked = true;
-        }
-    });
-}
+        const taskElements = document.querySelectorAll(`[id^="question_${taskId}-"][id$="-text"]`);
+        const leftRadioElements = document.querySelectorAll(`input[id^="option_${taskId}"][id$="-is_correct"][value="is_correct_0"]`);
+        const rightRadioElements = document.querySelectorAll(`input[id^="option_${taskId}"][id$="-is_correct"][value="is_correct_1"]`);
 
-function populateTypeFourFields(taskId, questions) {
-    document.getElementById(`question_${taskId}-counter`).value = questions.questions;
+        questions.questions.forEach((question, index) => {
+            if (index < taskElements.length) {
+                taskElements[index].value = question.text;
+            } else {
+                console.warn(`More questions than fields found for taskId ${taskId}`);
+            }
 
-    for (let i = 1; i < questions.rows; i++) {
-        addOptionWithSelect(taskId);
-    }
-
-    updateDropdowns(questions.rows, taskId);
-
-    const optionElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-text"]`);
-    const selectElements = document.querySelectorAll(`[name^="option_${taskId}-"][name$="-is_correct"]`);
-
-    questions.options.forEach((option, index) => {
-        if (index < optionElements.length) {
-            optionElements[index].value = option.text;
-        } else {
-            console.warn(`More options than fields found for taskId ${taskId}`);
-        }
-
-        if (option.correct) {
-            selectElements[index].value = option.correct;
-        }
-    });
-}
-
-function populateTypeFiveFields(taskId, questions) {
-    for (let i = 1; i < questions.rows; i++) {
-        addQuestionOptionRow(taskId);
-    }
-
-    const questionElements = document.querySelectorAll(`[id^="question_${taskId}-"][id$="-text"]`);
-    const optionElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-text"]`);
-
-    questions.questions.forEach((question, index) => {
-        if (index < questionElements.length) {
-            questionElements[index].value = question.text;
-        } else {
-            console.warn(`More questions than fields found for taskId ${taskId}`);
-        }
-        if (question.correct) {
-            optionElements[index].value = question.correct;
-        }
-    });
-}
-
-
-    function saveTasks() {
-        const tasks = [];
-        document.querySelectorAll('.task-form').forEach((taskForm, index) => {
-            const taskType = taskForm.querySelector(`select[name="task-${index + 1}-type"]`).value;
-            tasks.push({ type: taskType });
+            if (question.correct === 0) {
+                leftRadioElements[index].checked = true;
+            } else {
+                rightRadioElements[index].checked = true;
+            }
         });
-        sessionStorage.setItem('tasks', JSON.stringify(tasks));
     }
 
-    // function restoreTasks()
-    //     const tasks = JSON.parse(sessionStorage.getItem('tasks')) || [];
-    //     tasks.forEach(taskData => addTask(taskData));
+    function populateTypeTwoOrThreeFields(taskId, questions) {
+        if (questions.question) {
+            document.getElementById(`question_${taskId}-text`).value = questions.question;
+        }
+
+        for (let i = 1; i < questions.rows; i++) {
+            addOptionWithCheckbox(taskId);
+        }
+
+        const optionElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-text"]`);
+        const checkboxElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-is_correct"]`);
+
+        questions.options.forEach((option, index) => {
+            if (index < optionElements.length) {
+                optionElements[index].value = option.text;
+            } else {
+                console.warn(`More options than fields found for taskId ${taskId}`);
+            }
+
+            if (option.correct) {
+                checkboxElements[index].checked = true;
+            }
+        });
+    }
+
+    function populateTypeFourFields(taskId, questions) {
+        document.getElementById(`question_${taskId}-counter`).value = questions.questions;
+
+        for (let i = 1; i < questions.rows; i++) {
+            addOptionWithSelect(taskId);
+        }
+
+        updateDropdowns(questions.questions, taskId);
+
+        const optionElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-text"]`);
+        const selectElements = document.querySelectorAll(`[name^="option_${taskId}-"][name$="-is_correct"]`);
+
+        questions.options.forEach((option, index) => {
+            if (index < optionElements.length) {
+                optionElements[index].value = option.text;
+            } else {
+                console.warn(`More options than fields found for taskId ${taskId}`);
+            }
+
+            if (option.correct) {
+                selectElements[index].value = option.correct;
+            }
+        });
+    }
+
+    function populateTypeFiveFields(taskId, questions) {
+        for (let i = 1; i < questions.rows; i++) {
+            addQuestionOptionRow(taskId);
+        }
+
+        const questionElements = document.querySelectorAll(`[id^="question_${taskId}-"][id$="-text"]`);
+        const optionElements = document.querySelectorAll(`[id^="option_${taskId}-"][id$="-text"]`);
+
+        questions.questions.forEach((question, index) => {
+            if (index < questionElements.length) {
+                questionElements[index].value = question.text;
+            } else {
+                console.warn(`More questions than fields found for taskId ${taskId}`);
+            }
+            if (question.correct) {
+                optionElements[index].value = question.correct;
+            }
+        });
+    }
+
 
     function addQuestionWithRadio(taskId) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 20) {
+        if (questionRows.length < maxRows) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row grid grid-cols-3 gap-4 mb-2';
             questionRow.innerHTML = `
             <div>
-                {% include 'forms/input.html' with id='question_${taskId}-${rowCounter}-text' name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' label='' value='' errors='' %}
+                {% include 'forms/input.html' with name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' label='' value='' errors='' %}
             </div>
             <div class="flex items-center justify-center">
-                {% include 'forms/radiobutton.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_0'%}
+                {% include 'forms/radiobutton.html' with name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_0'%}
             </div>
             <div class="flex items-center justify-center">
-                {% include 'forms/radiobutton.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_1'%}
+                {% include 'forms/radiobutton.html' with name='option_${taskId}-${rowCounter}-is_correct' value='is_correct_1'%}
             </div>
             `;
             questionsContainer.appendChild(questionRow);
             rowCounter++;
-
-        } else {
-            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -401,23 +399,21 @@ function populateTypeFiveFields(taskId, questions) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 20) {
+        if (questionRows.length < maxRows) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row';
             questionRow.innerHTML = `
             <div class="flex items-center mb-2 space-x-4">
                 <div class="w-1/2 pr-2">
-                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' errors='' %}
+                    {% include 'forms/input.html' with name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' errors='' %}
                 </div>
-                <div class="flex items-center justify-center w-1/6">
-                    {% include 'forms/checkbox.html' with id='option_${taskId}-${rowCounter}-is_correct' name='option_${taskId}-${rowCounter}-is_correct' size=6 %}
+                <div class="flex justify-center w-1/6">
+                    {% include 'forms/checkbox.html' with name='option_${taskId}-${rowCounter}-is_correct' size=6 %}
                 </div>
             </div>
             `;
             questionsContainer.appendChild(questionRow);
             rowCounter++;
-        } else {
-            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -425,23 +421,21 @@ function populateTypeFiveFields(taskId, questions) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 20) {
+        if (questionRows.length < maxRows) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row';
             questionRow.innerHTML = `
-            <div class="flex items-center mb-2 space-x-4">
+            <div class="flex items-end mb-2 space-x-4">
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with id='question_${taskId}-${rowCounter}-text' name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' value='' label='' errors='' %}
+                    {% include 'forms/input.html' with name='question_${taskId}-${rowCounter}-text' placeholder='Otázka' value='' label='' errors='' %}
                 </div>
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' errors='' %}
+                    {% include 'forms/input.html' with name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' errors='' %}
                 </div>
             </div>
             `;
             questionsContainer.appendChild(questionRow);
             rowCounter++;
-        } else {
-            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -449,13 +443,13 @@ function populateTypeFiveFields(taskId, questions) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
 
-        if (questionRows.length < 20) {
+        if (questionRows.length < maxRows) {
             const questionRow = document.createElement('div');
             questionRow.className = 'question-row';
             questionRow.innerHTML = `
-            <div class="flex items-center mb-2 space-x-4">
+            <div class="flex items-end mb-2 space-x-4">
                 <div class="w-1/2">
-                    {% include 'forms/input.html' with id='option_${taskId}-${rowCounter}-text' name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' errors='' %}
+                    {% include 'forms/input.html' with name='option_${taskId}-${rowCounter}-text' placeholder='Možnost' value='' label='' errors='' %}
                 </div>
                 <div class="w-1/2">
                     <select name='option_${taskId}-${rowCounter}-is_correct' class="dropdown${taskId} mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
@@ -476,9 +470,6 @@ function populateTypeFiveFields(taskId, questions) {
                 option.text = i;
                 dropdown.appendChild(option);
             }
-
-        } else {
-            alert('Maximální počet otázek je 20.');
         }
     }
 
@@ -486,10 +477,8 @@ function populateTypeFiveFields(taskId, questions) {
     function removeLastQuestion(taskId) {
         const questionsContainer = document.getElementById(`QuestionsContainer${taskId}`);
         const questionRows = questionsContainer.querySelectorAll('.question-row');
-        if (questionRows.length > 1) {
+        if (questionRows.length > minRows) {
             questionsContainer.removeChild(questionRows[questionRows.length - 1]);
-        } else {
-            alert('Musí být alespoň jedna otázka.');
         }
     }
 
@@ -533,7 +522,6 @@ function populateTypeFiveFields(taskId, questions) {
             container.classList.add('hidden');
         }
     }
-
 
 </script>
 

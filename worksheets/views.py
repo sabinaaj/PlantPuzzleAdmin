@@ -103,11 +103,16 @@ class BaseWorksheetView(View):
     def create_type_2_or_3_task(self, request, task_num, image=False):
 
         if image:
+            image_src = request.FILES.get(f'{task_num}-image')
+            if not image_src:
+                image_src = request.POST.get(f'{task_num}-original-image')
+                image_src = image_src.replace('/media', '') if image_src else None
+
             task = Task.objects.create(
                 worksheet=self.worksheet,
                 type=TaskType.objects.get(type=TaskType.Type.CHOICES_PICTURE),
                 text=request.POST.get(f'task-{task_num}-text'),
-                image=request.FILES.get(f'{task_num}-image')
+                image=image_src
             )
 
             question = Question.objects.create(
@@ -140,26 +145,35 @@ class BaseWorksheetView(View):
 
     def create_type_4_task(self, request, task_num):
 
+        image_src = request.FILES.get(f'{task_num}-image')
+        if not image_src:
+            image_src = request.POST.get(f'{task_num}-original-image')
+            image_src = image_src.replace('/media', '') if image_src else None
+
+        logger.warning('image_src: %s', image_src)
+
         task = Task.objects.create(
             worksheet=self.worksheet,
             type=TaskType.objects.get(type=TaskType.Type.MULTIPLE_CHOICES_PICTURE),
             text=request.POST.get(f'task-{task_num}-text'),
-            image=request.FILES.get(f'{task_num}-image')
+            image=image_src
         )
 
         options = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')]
         options_correct = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('is_correct')]
 
-        question_cnt = int(request.POST.get(f'question_{task_num}-counter'))
-        for i in range(question_cnt):
+        for i, correct_option in enumerate(options_correct):
+            if not correct_option:
+                continue
+
             question = Question.objects.create(
                 task=task,
-                text=i+1
+                text=correct_option
             )
 
             for j, option in enumerate(options):
                 # Correct if number of correct answer is same as number of option
-                is_correct = int(options_correct[i]) == (j + 1)
+                is_correct = option == options[i]
 
                 Option.objects.create(
                     question=question,
@@ -343,7 +357,11 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
 
         correct_answers = []
         for question in questions:
-            correct_option = question.option_set.filter(is_correct=True).first().text
+            correct_option = question.option_set.filter(is_correct=True).first()
+
+            if correct_option:
+                correct_option = correct_option.text
+
             correct_answers.append((question.text, correct_option))
 
         return {
@@ -409,20 +427,28 @@ class CheckFormDataAjaxView(View):
 
         tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
 
-        # images = {k: v for (k, v) in request.POST.items() if k.endswith('image')}
-        # for image_name, image in images.items():
-        #     if not image:
-        #         self.errors[image_name] = 'Obrazek je povinný.'
+        images = {k: v for (k, v) in request.POST.items() if k.endswith('image')}
+        for image_name, image in images.items():
+            task_num = re.findall(r'\d+', image_name)[0]
+            image = image or request.POST.get(f'{task_num}-original-image')
+
+            if not image:
+                self.errors[image_name] = 'Obrázek je povinný.'
+
 
         questions = {k: v for (k, v) in request.POST.items() if k.startswith('question') and k.endswith('text')}
         for question_name, question in questions.items():
             if not question:
                 self.errors[question_name] = 'Toto pole je povinné.'
+            elif len(question) >= 100:
+                self.errors[question_name] = f'Maximální počet znaků je 150. Máte {len(question)}.'
 
         options = {k:v for (k, v) in request.POST.items() if k.startswith('option') and k.endswith('text')}
         for option_name, option in options.items():
             if not option:
                 self.errors[option_name] = 'Toto pole je povinné.'
+            elif len(option) >= 50:
+                self.errors[option_name] = f'Maximální počet znaků je 50. Máte {len(option)}.'
 
 
         for task_type, value in tasks.items():
@@ -431,38 +457,56 @@ class CheckFormDataAjaxView(View):
             task_text = request.POST.get(f'task-{task_num}-text')
             if not task_text:
                 self.errors[f'task-{task_num}-text'] = 'Zadání je povinné.'
+            elif len(task_text) >= 150:
+                self.errors[f'task-{task_num}-text'] = f'Maximální počet znaků je 150. Máte {len(task_text)}.'
 
-            if value == '1':
-                self.check_type_1_task_data(request, task_num)
             elif value == '2':
                 self.check_type_2_or_3_task_data(request, task_num)
             elif value == '3':
                 self.check_type_2_or_3_task_data(request, task_num)
             elif value == '4':
                 self.check_type_4_task_data(request, task_num)
-            elif value == '5':
-                self.check_type_5_task_data(request, task_num)
 
         if self.errors:
             return JsonResponse({'status': False, 'errors': self.errors})
 
         return JsonResponse({'status': True})
 
-    def check_type_1_task_data(self, request, task_num):
-
-        task_text = request.POST.get(f'task-{task_num}-text')
-        if not task_text:
-            self.errors[f'task-{task_num}-text'] = 'Zadání je povinné.'
 
     def check_type_2_or_3_task_data(self, request, task_num):
-        pass
+
+        options_checkboxes = {k: v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('-is_correct')}
+
+        if not options_checkboxes:
+            self.errors[f'checkbox-{task_num}'] = 'Vyberte správnou odpověď.'
+
 
     def check_type_4_task_data(self, request, task_num):
-        pass
+        counter_value = request.POST.get(f'question_{task_num}-counter')
 
-    def check_type_5_task_data(self, request, task_num):
-        pass
+        if not counter_value.isdigit():
+            self.errors[f'question_{task_num}-counter'] = 'Toto pole musí obsahovat číslo.'
 
+        else:
+            counter_value = int(counter_value)
+            if not (1 <= counter_value <= 15):
+                self.errors[f'question_{task_num}-counter'] = 'Číslo musí být v rozmezí od 1 do 15.'
+
+        options_correct_raw = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('is_correct')]
+        options_correct = []
+
+        for value in options_correct_raw:
+            if value.isdigit():
+                options_correct.append(int(value))
+
+        logger.warning('check_type_4_task_data: %s', options_correct)
+
+        if len(options_correct) != counter_value:
+            logger.warning('check_type_4_task_data: %s', len(options_correct))
+            self.errors[f'select-{task_num}'] = 'Musíte použít všechna čísla.'
+
+        if len(options_correct) != len(set(options_correct)):
+            self.errors[f'select-{task_num}'] = 'Každé číslo může být použito pouze jednou.'
 
 
 class WorksheetDeleteView(DeleteView):

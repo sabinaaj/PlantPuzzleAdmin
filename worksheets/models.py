@@ -31,14 +31,14 @@ class Task(models.Model):
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
 
 
-@receiver(post_delete, sender=Task)
-def delete_task_image(sender, instance, **kwargs):
-
-    if instance.image:
-        image_path = instance.image.path
-        if default_storage.exists(image_path):
-            default_storage.delete(image_path)
-            print(f"Obrázek {image_path} byl smazán.")
+# @receiver(post_delete, sender=Task)
+# def delete_task_image(sender, instance, **kwargs):
+#
+#     if instance.image:
+#         image_path = instance.image.path
+#         if default_storage.exists(image_path):
+#             default_storage.delete(image_path)
+#             print(f"Obrázek {image_path} byl smazán.")
 
 
 class Question(models.Model):
