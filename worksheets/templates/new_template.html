@@ -1,0 +1,61 @@
+<html lang="cs" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pracovní list - Jarní aspekt listnatého lesa</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="font-sans p-8">
+
+    <h1 class="text-3xl font-bold text-center mb-8">Jarní aspekt listnatého lesa</h1>
+
+    <div class="flex justify-between mb-4">
+        <div class="flex-1 px-2">
+            <label>Jméno:</label>
+            <div class="border-b border-gray-400 mt-1"></div>
+        </div>
+    </div>
+    <div class="flex justify-between mb-4">
+        <div class="flex-1 px-2">
+            <label>Datum:</label>
+            <div class="border-b border-gray-400 mt-1"></div>
+        </div>
+        <div class="flex-1 px-2">
+            <label>Třída:</label>
+            <div class="border-b border-gray-400 mt-1"></div>
+        </div>
+    </div>
+
+    <div class="question my-10">
+        <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
+        <div class="space-y-3 pl-14">
+            <label class="flex">
+                a) Orsej
+            </label>
+            <label class="flex">
+                b) Bledule
+            </label>
+            <label class="flex">
+                c) Prvosenka
+            </label>
+        </div>
+    </div>
+
+    <div class="question my-10">
+        <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
+        <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
+        <div class="space-y-3 pl-14">
+            <label class="flex">
+                a) Orsej
+            </label>
+            <label class="flex">
+                b) Bledule
+            </label>
+            <label class="flex">
+                c) Prvosenka
+            </label>
+        </div>
+    </div>
+
+</body>
+</html>
