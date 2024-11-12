@@ -2,11 +2,11 @@
     <div class="flex justify-between items-center">
         <label for="{{ name }}" class="block text-sm font-medium text-gray-700">{{ label }}</label>
 
-        <span id="{{ name }}-error" class="text-red-500 text-sm pr-1">
+        <div id="{{ name }}-error" class="text-red-500 text-sm pr-1">
             {% if errors %}
                 {{ errors.0 }}
             {% endif %}
-        </span>
+        </div>
 
     </div>
     {% if errors %}
