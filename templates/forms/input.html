@@ -1,9 +1,13 @@
 <div>
     <div class="flex justify-between items-center">
         <label for="{{ name }}" class="block text-sm font-medium text-gray-700">{{ label }}</label>
-        {% if errors %}
-        <span class="text-red-500 text-sm pr-1">{{ errors.0 }}</span>
-        {% endif %}
+
+        <div id="{{ name }}-error" class="text-red-500 text-sm pr-1">
+            {% if errors %}
+                {{ errors.0 }}
+            {% endif %}
+        </div>
+
     </div>
     {% if errors %}
     <input type="text" id="{{ name }}" name="{{ name }}" value="{{ value|default_if_none:'' }}"

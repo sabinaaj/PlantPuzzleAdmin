@@ -1,13 +1,11 @@
 {% load static %}
 
-<div class="flex items-center mb-4 space-x-4">
+<div class="flex items-start mb-4 space-x-4">
     <div class="w-1/2">
-        {% include 'forms/input.html' with id='task-TaskId-text' name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' %}
+        {% include 'forms/input.html' with name='task-TaskId-text' label='Zadání' placeholder='Doplňte zadání' value='' errors='' %}
     </div>
     <div class="w-1/2">
-        <label for="question_TaskId-image" class="block text-sm font-medium text-gray-700">Obrázek</label>
-        <input type="file" id="question_TaskId-image" name="question_TaskId-image"
-               class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-50 focus:ring-green-500 focus:border-green-500">
+        {% include 'forms/image_input.html' with name='TaskId' errors='' %}
     </div>
 </div>
 <div class="flex items-center mb-4 space-x-4">
@@ -27,12 +25,13 @@
 
 <div id="QuestionsContainerTaskId">
     <div class="question-row">
-        <div class="flex items-center mb-2 space-x-4">
+        <div class="flex items-end mb-2 space-x-4">
             <div class="w-1/2">
-                {% include 'forms/input.html' with id='option_TaskId-0-text' name='option_TaskId-0-text' placeholder='Možnost' value='' label='' %}
+                {% include 'forms/input.html' with name='option_TaskId-0-text' placeholder='Možnost' value='' label='' errors='' %}
             </div>
             <div class="w-1/2">
-                <select name='option_TaskId-0-is_correct' class="dropdownTaskId mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
+                <select name='option_TaskId-0-is_correct'
+                        class="dropdownTaskId mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring focus:ring-opacity-30 focus:ring-brown-500 focus:border-brown-500">
                     <option value="">Vyberte...</option>
                 </select>
             </div>
@@ -45,8 +44,13 @@
         <button type="button" class="text-red-400 hover:text-red-500 p-2" onclick="removeLastQuestion(TaskId)">
             <i class="fa fa-minus fa-xl"></i>
         </button>
-        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2" onclick="addOptionWithSelect(TaskId)">
+        <button type="button" class="text-pistachio-500 hover:text-pistachio-600 p-2"
+                onclick="addOptionWithSelect(TaskId)">
             <i class="fa fa-plus fa-xl"></i>
         </button>
     </div>
+
+    <div id="select-TaskId-error" class="text-red-500 text-sm flex items-center justify-center">
+    </div>
+
 </div>

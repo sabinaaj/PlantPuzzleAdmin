@@ -1,4 +1,7 @@
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
+from django.core.files.storage import default_storage
 
 
 class TaskType(models.Model):
@@ -22,10 +25,20 @@ class Worksheet(models.Model):
 
 
 class Task(models.Model):
-    text = models.TextField(blank=True, null=True)
+    text = models.TextField()
     image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     type = models.ForeignKey(TaskType, on_delete=models.DO_NOTHING, blank=True, null=True)
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
+
+
+# @receiver(post_delete, sender=Task)
+# def delete_task_image(sender, instance, **kwargs):
+#
+#     if instance.image:
+#         image_path = instance.image.path
+#         if default_storage.exists(image_path):
+#             default_storage.delete(image_path)
+#             print(f"Obrázek {image_path} byl smazán.")
 
 
 class Question(models.Model):
