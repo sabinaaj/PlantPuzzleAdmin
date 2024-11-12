@@ -8,8 +8,12 @@
 <div class="max-w-6xl mx-auto py-8">
     <!-- Header with large icon and title -->
     <div class="flex items-center mb-8">
-        <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
-        <h1 class="text-3xl font-bold text-gray-700">Oblast</h1>
+        {% if area.icon %}
+            <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-16 mr-4">
+        {% else %}
+            <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
+        {% endif %}
+        <h1 class="text-3xl font-bold text-gray-700">{{ area.title }}</h1>
     </div>
 
     <!-- Tabs and add button -->
