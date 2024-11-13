@@ -8,173 +8,103 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<style>
-    /* Reset stylů */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: sans-serif;
-        padding: 2rem;
-    }
-
-    /* Titulek */
-    .title {
-        font-size: 1.875rem; /* odpovídá text-3xl */
-        font-weight: bold;
-        text-align: center;
-        margin-bottom: 2rem;
-    }
-
-    /* Styl skupiny vstupů */
-    .input-group {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 1rem;
-    }
-
-    /* Styl jednotlivých vstupních polí */
-    .input-field {
-        flex: 1;
-        padding: 0 0.5rem;
-    }
-
-    .input-field label {
-        font-weight: normal;
-    }
-
-    .input-line {
-        border-bottom: 1px solid #9ca3af;
-        margin-top: 0.4rem;
-    }
-
-    .task {
-        margin-top: 2.5rem;
-        margin-bottom: 2.5rem;
-    }
-
-    .task-title {
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-
-    .question-text {
-        margin-bottom: 0.75rem;
-
-    }
-
-    .options-padding {
-        padding-left: 3.5rem;
-    }
-
-    .task-2-item {
-        display: block;
-        margin-bottom: 0.75rem;
-    }
-
-    .task-3-item {
-        display: block;
-        margin-bottom: 0.75rem;
-    }
-
-    .question img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        margin: 10px 0;
-    }
-
-
-    .checkbox-group {
-        display: flex;
-        justify-content: space-between;
-        width: 50%;
-    }
-
-    .checkbox-group div {
-        display: flex;
-        align-items: center;
-    }
-
-    .checkbox-group label {
-        margin-left: 5px;
-    }
-</style>
 <body class="font-sans p-8">
 
-    <h1 class="text-3xl font-bold text-center mb-8">Jarní aspekt listnatého lesa</h1>
+<h1 class="text-3xl font-bold text-center mb-8">Jarní aspekt listnatého lesa</h1>
 
-    <div class="flex justify-between mb-4">
-        <div class="flex-1 px-2">
-            <label>Jméno:</label>
-            <div class="border-b border-gray-400 mt-1"></div>
+<div class="flex justify-between mb-4">
+    <div class="flex-1 px-2">
+        <label>Jméno:</label>
+        <div class="border-b border-gray-400 mt-1"></div>
+    </div>
+</div>
+<div class="flex justify-between mb-4">
+    <div class="flex-1 px-2">
+        <label>Datum:</label>
+        <div class="border-b border-gray-400 mt-1"></div>
+    </div>
+    <div class="flex-1 px-2">
+        <label>Třída:</label>
+        <div class="border-b border-gray-400 mt-1"></div>
+    </div>
+</div>
+
+<div class="my-10">
+    <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
+    <p class="mb-3">Velká část rostlin kvete</p>
+    <div class="space-y-3 pl-14 space-y-3">
+        <label class="flex">
+            a) Orsej
+        </label>
+        <label class="flex">
+            b) Bledule
+        </label>
+        <label class="flex">
+            c) Prvosenka
+        </label>
+    </div>
+</div>
+</div>
+
+<div class="my-10">
+    <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
+    <img src="{{ image }}" alt="Květina 2" class="w-1/2 mx-auto rounded-lg shadow-md mb-4">
+    <div class="space-y-3 pl-14">
+        <label class="flex">a) Orsej</label>
+        <label class="flex">b) Bledule</label>
+        <label class="flex">c) Prvosenka</label>
+    </div>
+</div>
+
+<div class="my-10">
+    <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
+    <div class="flex mb-2">
+        <div class="w-2/4"></div>
+        <div class="w-1/4 flex items-center justify-center">
+            <p class="mb-3">Velká část rostlin kvete</p>
+        </div>
+        <div class="w-1/4 flex items-center justify-center">
+            <p class="mb-3">Velká část rostlin kvete</p>
         </div>
     </div>
-    <div class="flex justify-between mb-4">
-        <div class="flex-1 px-2">
-            <label>Datum:</label>
-            <div class="border-b border-gray-400 mt-1"></div>
+    <div class="flex mb-2">
+        <div class="w-2/4 flex items-center justify-center">
+            <p class="mb-3">Velká část rostlin kvete</p>
         </div>
-        <div class="flex-1 px-2">
-            <label>Třída:</label>
-            <div class="border-b border-gray-400 mt-1"></div>
+        <div class="w-1/4 flex items-center justify-center">
+            <input type="checkbox" class="h-6 w-6 rounded-md border-gray-300">
         </div>
-    </div>
-
-    <div class="question my-10">
-        <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
-        <div class="space-y-3 pl-14">
-            <label class="flex">
-                a) Orsej
-            </label>
-            <label class="flex">
-                b) Bledule
-            </label>
-            <label class="flex">
-                c) Prvosenka
-            </label>
+        <div class="w-1/4 flex items-center justify-center">
+            <input type="checkbox" class="h-6 w-6 rounded-md border-gray-300">
         </div>
     </div>
 </div>
 
-<div class="task">
-    <p class="task-title">2. Poznáš rostliny na obrázcích?</p>
-    <img src="{{ image }}" alt="Image">
-    <div class="options">
-        <label class="task-3-item">a) Orsej</label>
-        <label class="task-3-item">b) Bledule</label>
-        <label class="task-3-item">c) Prvosenka</label>
+<div class="my-10">
+    <p class="font-semibold my-4">2. Spoj</p>
+    <div class="flex gap-4 mb-3">
+        <div class="w-1/2 flex items-center justify-center">
+            <p class="mb-3">Velká část rostlin kvete</p>
+        </div>
+        <div class="w-1/2 flex items-center justify-center">
+            <p class="mb-3">Velká část rostlin kvete</p>
+        </div>
     </div>
 </div>
 
-
-<div class="task">
-    <p class="task-title">4. Jsou tyto věty pravdivé nebo ne?</p>
-    <p>Velká část rostlin kvete</p>
-    <div class="checkbox-group">
-        <div>
-            <input type="checkbox" id="q4_1_true">
-            <label for="q4_1_true">Velká část rostlin kvete</label>
+<div class="my-10">
+    <p class="font-semibold my-4">2. Spoj</p>
+    <img src="{{ image }}" alt="Květina 2" class="w-1/2 mx-auto rounded-lg shadow-md mb-4">
+    <div class="flex gap-14 mb-3 px-20">
+        <div class="flex-1">
+            <label>1.</label>
+            <div class="border-b border-gray-400 mt-1"></div>
         </div>
-        <div>
-            <input type="checkbox" id="q4_1_false">
-            <label for="q4_1_false">Ne</label>
-        </div>
-    </div>
-    <div class="checkbox-group">
-        <div>
-            <input type="checkbox" id="q4_2_true">
-            <label for="q4_2_true">Tyto cibule slouží jako zásobárna</label>
-        </div>
-        <div>
-            <input type="checkbox" id="q4_2_false">
-            <label for="q4_2_false">Ne</label>
+        <div class="flex-1">
+            <label>2.</label>
+            <div class="border-b border-gray-400 mt-1"></div>
         </div>
     </div>
-    <!-- Add more statements as needed -->
 </div>
 
 
