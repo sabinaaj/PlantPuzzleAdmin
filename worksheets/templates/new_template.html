@@ -1,10 +1,108 @@
+{% load static %}
+
 <html lang="cs" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pracovní list - Jarní aspekt listnatého lesa</title>
+    <link rel="stylesheet" href="styles.css">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
+<style>
+    /* Reset stylů */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: sans-serif;
+        padding: 2rem;
+    }
+
+    /* Titulek */
+    .title {
+        font-size: 1.875rem; /* odpovídá text-3xl */
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    /* Styl skupiny vstupů */
+    .input-group {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    /* Styl jednotlivých vstupních polí */
+    .input-field {
+        flex: 1;
+        padding: 0 0.5rem;
+    }
+
+    .input-field label {
+        font-weight: normal;
+    }
+
+    .input-line {
+        border-bottom: 1px solid #9ca3af;
+        margin-top: 0.4rem;
+    }
+
+    .task {
+        margin-top: 2.5rem;
+        margin-bottom: 2.5rem;
+    }
+
+    .task-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+
+    .question-text {
+        margin-bottom: 0.75rem;
+
+    }
+
+    .options-padding {
+        padding-left: 3.5rem;
+    }
+
+    .task-2-item {
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+
+    .task-3-item {
+        display: block;
+        margin-bottom: 0.75rem;
+    }
+
+    .question img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 10px 0;
+    }
+
+
+    .checkbox-group {
+        display: flex;
+        justify-content: space-between;
+        width: 50%;
+    }
+
+    .checkbox-group div {
+        display: flex;
+        align-items: center;
+    }
+
+    .checkbox-group label {
+        margin-left: 5px;
+    }
+</style>
 <body class="font-sans p-8">
 
     <h1 class="text-3xl font-bold text-center mb-8">Jarní aspekt listnatého lesa</h1>
@@ -40,22 +138,45 @@
             </label>
         </div>
     </div>
+</div>
 
-    <div class="question my-10">
-        <p class="font-semibold mb-4">2. Poznáš rostliny na obrázcích?</p>
-        <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
-        <div class="space-y-3 pl-14">
-            <label class="flex">
-                a) Orsej
-            </label>
-            <label class="flex">
-                b) Bledule
-            </label>
-            <label class="flex">
-                c) Prvosenka
-            </label>
+<div class="task">
+    <p class="task-title">2. Poznáš rostliny na obrázcích?</p>
+    <img src="{{ image }}" alt="Image">
+    <div class="options">
+        <label class="task-3-item">a) Orsej</label>
+        <label class="task-3-item">b) Bledule</label>
+        <label class="task-3-item">c) Prvosenka</label>
+    </div>
+</div>
+
+
+<div class="task">
+    <p class="task-title">4. Jsou tyto věty pravdivé nebo ne?</p>
+    <p>Velká část rostlin kvete</p>
+    <div class="checkbox-group">
+        <div>
+            <input type="checkbox" id="q4_1_true">
+            <label for="q4_1_true">Velká část rostlin kvete</label>
+        </div>
+        <div>
+            <input type="checkbox" id="q4_1_false">
+            <label for="q4_1_false">Ne</label>
         </div>
     </div>
+    <div class="checkbox-group">
+        <div>
+            <input type="checkbox" id="q4_2_true">
+            <label for="q4_2_true">Tyto cibule slouží jako zásobárna</label>
+        </div>
+        <div>
+            <input type="checkbox" id="q4_2_false">
+            <label for="q4_2_false">Ne</label>
+        </div>
+    </div>
+    <!-- Add more statements as needed -->
+</div>
+
 
 </body>
 </html>

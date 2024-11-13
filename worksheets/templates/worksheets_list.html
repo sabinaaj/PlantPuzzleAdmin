@@ -48,14 +48,13 @@
             <tr class="border-b  cursor-pointer">
                 <td class="py-3 px-4 text-gray-700 text-left max-w-full">{{ worksheet.title }}</td>
                 <td class="py-3 px-4 text-center">
-                    <form method="post" action="{% url 'worksheets:worksheets_export' area.pk worksheet.pk %}" class="inline">
-                        <button type="submit">
-                            <i class="fas fa-file-export fa-lg text-brown-500 hover:text-brown-600"></i>
-                        </button>
-                    </form>
+                    <a href="{% url 'worksheets:worksheets_export' area.pk worksheet.pk %}" target="_blank">
+                        <i class="fas fa-file-export fa-lg text-brown-500 hover:text-brown-600"></i>
+                    </a>
                 </td>
                 <td class="py-3 px-4 text-center">
                     <form method="post" action="{% url 'worksheets:worksheets_export_with_answers' area.pk worksheet.pk %}" class="inline">
+                        {% csrf_token %}
                         <button type="submit">
                             <i class="fas fa-file-export fa-lg text-brown-700 hover:text-brown-800 cursor-pointer"></i>
                         </button>
