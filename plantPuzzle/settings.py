@@ -15,6 +15,8 @@ MEDIA_URL = '/media/'
 TAILWIND_APP_NAME = "theme"
 TAILWIND_DEV_MODE = DEBUG
 
+LOGOUT_REDIRECT_URL = 'login'
+
 INTERNAL_IPS = [
     "127.0.0.1",
 ]

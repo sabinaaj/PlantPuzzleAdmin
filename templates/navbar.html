@@ -4,7 +4,8 @@
     <div class="container mx-auto max-w-6xl flex justify-between items-center">
         <!-- Left side links -->
         <div class="flex space-x-8">
-            <a href="{% url 'areas:area_list' %}" class="text-gray-700 hover:bg-brown-500 px-3 py-2 rounded flex items-center">
+            <a href="{% url 'areas:area_list' %}"
+               class="text-gray-700 hover:bg-brown-500 px-3 py-2 rounded flex items-center">
                 <img src="{% static 'map.png' %}" class="h-8 mr-2">
                 Oblasti
             </a>
@@ -19,10 +20,13 @@
         </div>
 
         <!-- Right side user info and logout button -->
-        <div class="flex items-center space-x-8">
-            <span class="text-gray-700">Přihlášený uživatel</span>
-            <button class="text-gray-700 font-medium hover:bg-brown-500 px-3 py-2 rounded">Odhlásit</button>
-        </div>
+        <form class="flex items-center space-x-8 mb-0" method="post" action="{% url 'logout' %}">
+            <span class="text-gray-700">{{ request.user.username }}</span>
+            {% csrf_token %}
+            <button type="submit" class="text-gray-700 font-medium hover:bg-brown-500 px-3 py-2 rounded">
+                Odhlásit
+            </button>
+        </form>
     </div>
 
     <!-- Centered logo -->
