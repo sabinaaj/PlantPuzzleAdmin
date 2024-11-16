@@ -94,8 +94,10 @@ class BaseWorksheetView(View):
         if image:
             image_src = request.FILES.get(f'{task_num}-image')
             if not image_src:
-                image_src = request.POST.get(f'{task_num}-original-image')
+                image_src = request.POST.get(f'{task_num}-image-original')
                 image_src = image_src.replace('/media', '') if image_src else None
+
+            logger.warning(image_src)
 
             task = Task.objects.create(
                 worksheet=self.worksheet,
@@ -136,7 +138,7 @@ class BaseWorksheetView(View):
 
         image_src = request.FILES.get(f'{task_num}-image')
         if not image_src:
-            image_src = request.POST.get(f'{task_num}-original-image')
+            image_src = request.POST.get(f'{task_num}-image-original')
             image_src = image_src.replace('/media', '') if image_src else None
 
         logger.warning('image_src: %s', image_src)
