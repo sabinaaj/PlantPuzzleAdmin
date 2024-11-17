@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white p-6 rounded shadow-md">
+        <div class="text-center">
+            <img class="mx-auto h-12" src="/static/logo.jpg" alt="Logo">
+            <h2 class="mt-4 text-2xl font-bold text-gray-900">
+                PlantPuzzle
+            </h2>
+        </div>
+
+        <form method="post" class="mt-6 space-y-8">
+            {% csrf_token %}
+            <div class="rounded-md shadow-sm">
+                <div>
+                    <label for="username" class="sr-only">Uživatelské jméno</label>
+                    <input id="username" name="username" type="text" required
+                           class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-brown-500 focus:border-brown-500 focus:z-10 sm:text-sm"
+                           placeholder="Uživatelské jméno">
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Heslo</label>
+                    <input id="password" name="password" type="password" required
+                           class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-brown-500 focus:border-brown-500 focus:z-10 sm:text-sm"
+                           placeholder="Heslo">
+                </div>
+            </div>
+                <button type="submit"
+                        class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brown-500 hover:bg-brown-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brown-500">
+                    Přihlásit se
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
