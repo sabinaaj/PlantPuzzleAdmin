@@ -26,19 +26,8 @@ class Worksheet(models.Model):
 
 class Task(models.Model):
     text = models.TextField()
-    image = models.ImageField(upload_to='question_images/', blank=True, null=True)
     type = models.ForeignKey(TaskType, on_delete=models.DO_NOTHING, blank=True, null=True)
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
-
-
-# @receiver(post_delete, sender=Task)
-# def delete_task_image(sender, instance, **kwargs):
-#
-#     if instance.image:
-#         image_path = instance.image.path
-#         if default_storage.exists(image_path):
-#             default_storage.delete(image_path)
-#             print(f"Obrázek {image_path} byl smazán.")
 
 
 class Question(models.Model):
@@ -50,3 +39,8 @@ class Option(models.Model):
     text = models.CharField(blank=True, null=True)
     is_correct = models.BooleanField(default=False)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+
+class TaskImage(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.SET_NULL, blank=True, null=True)
+    image = models.ImageField(upload_to='question_images/', blank=True, null=True)

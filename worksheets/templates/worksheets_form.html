@@ -265,10 +265,10 @@
         const container = document.getElementById(`${taskId}-preview`);
         const originalImage = document.getElementById(`${taskId}-image-original`);
 
-        if (preview && taskData.image) {
-            originalImage.value = taskData.image;
-            imageName.textContent = taskData.image.split('/').pop();
-            preview.src = taskData.image;
+        if (preview && (taskData.imageUrl || taskData.imagePk)) {
+            originalImage.value = taskData.imagePk;
+            imageName.textContent = taskData.imageUrl.split('/').pop();
+            preview.src = taskData.imageUrl;
             preview.classList.remove('hidden');
             container.classList.remove('hidden');
         }

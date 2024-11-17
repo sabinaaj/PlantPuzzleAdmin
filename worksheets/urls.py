@@ -1,7 +1,9 @@
 from django.urls import path
 
-from .views import WorksheetListView, WorksheetCreateView, LoadTaskFormView, WorksheetDeleteView, WorksheetExportView, \
-                   WorksheetExportWithAnswersView, WorksheetUpdateView, CheckFormDataAjaxView
+from .views import WorksheetListView, WorksheetCreateView, LoadTaskFormView, WorksheetDeleteView, \
+                   WorksheetUpdateView, CheckFormDataAjaxView
+
+from .exports import WorksheetExportView, WorksheetExportWithAnswersView
 
 app_name = "worksheets"
 
