@@ -1,13 +1,13 @@
 from django.views.generic import View, CreateView, UpdateView, ListView, DeleteView
 from django.template.loader import render_to_string
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect, render
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect
 from django.contrib import messages
 
 from visitors.models import SchoolGroup
 from areas.models import Area
 from .forms import WorksheetForm
-from .models import Worksheet, TaskType, Task, Question, Option
+from .models import Worksheet, TaskType, Task, Question, Option, TaskImage
 
 import re
 import logging
@@ -92,19 +92,26 @@ class BaseWorksheetView(View):
     def create_type_2_or_3_task(self, request, task_num, image=False):
 
         if image:
-            image_src = request.FILES.get(f'{task_num}-image')
-            if not image_src:
-                image_src = request.POST.get(f'{task_num}-image-original')
-                image_src = image_src.replace('/media', '') if image_src else None
-
-            logger.warning(image_src)
-
             task = Task.objects.create(
                 worksheet=self.worksheet,
-                type=TaskType.objects.get(type=TaskType.Type.CHOICES_PICTURE),
+                type=TaskType.objects.get(type=TaskType.Type.MULTIPLE_CHOICES_PICTURE),
                 text=request.POST.get(f'task-{task_num}-text'),
-                image=image_src
             )
+
+            image_src = request.FILES.get(f'{task_num}-image')
+            if image_src:
+                image = TaskImage.objects.create(
+                    task=task,
+                    image=image_src
+                )
+            if not image_src:
+                image_pk = request.POST.get(f'{task_num}-image-original')
+                image = TaskImage.objects.get(pk=image_pk)
+
+                image.task = task
+                image.save()
+
+            logger.warning('image_src: %s', image_src)
 
             question = Question.objects.create(
                 task=task
@@ -136,19 +143,26 @@ class BaseWorksheetView(View):
 
     def create_type_4_task(self, request, task_num):
 
-        image_src = request.FILES.get(f'{task_num}-image')
-        if not image_src:
-            image_src = request.POST.get(f'{task_num}-image-original')
-            image_src = image_src.replace('/media', '') if image_src else None
-
-        logger.warning('image_src: %s', image_src)
-
         task = Task.objects.create(
             worksheet=self.worksheet,
             type=TaskType.objects.get(type=TaskType.Type.MULTIPLE_CHOICES_PICTURE),
             text=request.POST.get(f'task-{task_num}-text'),
-            image=image_src
         )
+
+        image_src = request.FILES.get(f'{task_num}-image')
+        if image_src:
+            image = TaskImage.objects.create(
+                task=task,
+                image=image_src
+            )
+        if not image_src:
+            image_pk = request.POST.get(f'{task_num}-image-original')
+            image = TaskImage.objects.get(pk=image_pk)
+
+            image.task = task
+            image.save()
+
+        logger.warning('image_src: %s', image_src)
 
         options = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')]
         options_correct = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('is_correct')]
@@ -242,11 +256,13 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
         context = super().get_context_data(**kwargs)
 
         worksheet = self.get_object()
+
         context['tasks_data'] = [
             {
                 'type': task.type.id,
                 'text': task.text or '',
-                'image': task.image.url if task.image else '',
+                'imagePk': task.taskimage_set.first().pk if task.taskimage_set.exists() else '',
+                'imageUrl': task.taskimage_set.first().image.url if task.taskimage_set.exists() else '',
                 'questions': self.prepare_task_data(task),
             }
             for task in worksheet.task_set.all()

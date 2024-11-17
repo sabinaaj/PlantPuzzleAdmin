@@ -24,7 +24,7 @@ class WorksheetExportView(View):
                 {
                     'type': task.type.id,
                     'text': f'{i + 1}. {task.text}' or '',
-                    'image': task.image.path if task.image else '',
+                    'image': task.taskimage_set.first().image.path if task.taskimage_set.exists() else '',
                     'questions': self.prepare_task_data(task),
                 }
                 for i, task in enumerate(self.worksheet.task_set.all())
@@ -62,7 +62,10 @@ class WorksheetExportView(View):
         questions = task.question_set.all()
         options = questions[0].option_set.all() if questions else []
 
+        logger.warning(any(len(question.text) > 50 for question in questions))
+
         return {
+            'align_left': True if any(len(question.text) > 50 for question in questions) else False,
             'options': [option.text if option.text else "" for option in options],
             'questions': [question.text for question in questions]
         }
@@ -116,7 +119,7 @@ class WorksheetExportWithAnswersView(View):
                 {
                     'type': task.type.id,
                     'text': f'{i + 1}. {task.text}' or '',
-                    'image': task.image.path if task.image else '',
+                    'image': task.taskimage_set.first().image.path if task.taskimage_set.exists() else '',
                     'questions': self.prepare_task_data(task),
                 }
                 for i, task in enumerate(self.worksheet.task_set.all())
@@ -155,6 +158,7 @@ class WorksheetExportWithAnswersView(View):
         options = questions[0].option_set.all() if questions else []
 
         return {
+            'align_left': True if any(len(question.text) > 50 for question in questions) else False,
             'options': [option.text if option.text else "" for option in options],
             'questions': [
                 {

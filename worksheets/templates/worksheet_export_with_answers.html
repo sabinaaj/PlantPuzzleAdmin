@@ -55,9 +55,17 @@
 
         {% for question in task.questions.questions %}
         <div class="flex mb-2">
+
+            {% if task.questions.align_left %}
+            <div class="w-2/4 flex items-center justify-start">
+                <p class="mb-3">{{ question.text }}</p>
+            </div>
+            {% else %}
             <div class="w-2/4 flex items-center justify-center">
                 <p class="mb-3">{{ question.text }}</p>
             </div>
+            {% endif %}
+
             {% if question.correct == 0 %}
             <div class="w-1/4 flex items-center justify-center">
                 <!-- Unchecked checkbox -->
@@ -125,7 +133,7 @@
         <p class="font-semibold mb-4">{{ task.text }}</p>
         <img src="{{ task.image }}" class="w-1/2 mx-auto rounded-lg shadow-md mb-4 max-h-72 object-contain">
 
-        <div class="space-y-3 mx-auto w-max-1/2 w-fit">
+        <div class="space-y-3 mx-auto w-max-1/2">
 
             {% for option in task.questions.options %}
 
