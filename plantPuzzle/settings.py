@@ -21,6 +21,8 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+SESSION_COOKIE_AGE = 60 * 60 * 8  # 8 hours
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # Application definition
 

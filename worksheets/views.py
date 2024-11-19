@@ -100,7 +100,7 @@ class BaseWorksheetView(View):
 
             image_src = request.FILES.get(f'{task_num}-image')
             if image_src:
-                image = TaskImage.objects.create(
+                TaskImage.objects.create(
                     task=task,
                     image=image_src
                 )
@@ -110,8 +110,6 @@ class BaseWorksheetView(View):
 
                 image.task = task
                 image.save()
-
-            logger.warning('image_src: %s', image_src)
 
             question = Question.objects.create(
                 task=task
@@ -151,7 +149,7 @@ class BaseWorksheetView(View):
 
         image_src = request.FILES.get(f'{task_num}-image')
         if image_src:
-            image = TaskImage.objects.create(
+            TaskImage.objects.create(
                 task=task,
                 image=image_src
             )
@@ -161,8 +159,6 @@ class BaseWorksheetView(View):
 
             image.task = task
             image.save()
-
-        logger.warning('image_src: %s', image_src)
 
         options = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('text')]
         options_correct = [v for (k, v) in request.POST.items() if k.startswith(f'option_{task_num}') and k.endswith('is_correct')]
@@ -249,6 +245,15 @@ class WorksheetCreateView(BaseWorksheetView, CreateView):
 
         return super().post(request, *args, **kwargs)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['worksheet'] = None
+        context['tasks_data'] = None
+        context['selected_school_groups'] = None
+
+        return context
+
 
 class WorksheetUpdateView(BaseWorksheetView, UpdateView):
 
@@ -291,10 +296,7 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
         # delete all tasks
         self.worksheet.task_set.all().delete()
 
-        logger.warning('post: %s', request.POST)
-
         tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
-        logger.warning('tasks: %s', tasks)
 
         for task_type, value in tasks.items():
             task_num = re.findall(r'\d+', task_type)[0]
@@ -427,11 +429,11 @@ class CheckFormDataAjaxView(View):
 
     def post(self, request, *args, **kwargs):
         self.errors = {}
-        logger.warning('CheckFormDataAjaxView: %s', request.POST)
         title = request.POST.get('title')
 
         if not title:
             self.errors['title'] = "Název je povinný."
+
 
         tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}
 
@@ -507,10 +509,7 @@ class CheckFormDataAjaxView(View):
             if value.isdigit():
                 options_correct.append(int(value))
 
-        logger.warning('check_type_4_task_data: %s', options_correct)
-
         if len(options_correct) != counter_value:
-            logger.warning('check_type_4_task_data: %s', len(options_correct))
             self.errors[f'select-{task_num}'] = 'Musíte použít všechna čísla.'
 
         if len(options_correct) != len(set(options_correct)):
