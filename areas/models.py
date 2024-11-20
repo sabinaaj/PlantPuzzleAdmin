@@ -17,5 +17,5 @@ class Plant(models.Model):
 
 class PlantImage(models.Model):
     plant = models.ForeignKey(Plant, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=f'plants/{plant.name}')
+    image = models.ImageField(upload_to=f'plants/')
 
