@@ -16,6 +16,8 @@ TAILWIND_APP_NAME = "theme"
 TAILWIND_DEV_MODE = DEBUG
 
 LOGOUT_REDIRECT_URL = 'login'
+LOGIN_REDIRECT_URL = 'areas:area_list'
+LOGIN_URL = '/login'
 
 INTERNAL_IPS = [
     "127.0.0.1",

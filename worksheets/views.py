@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from visitors.models import SchoolGroup
 from areas.models import Area
@@ -14,7 +15,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class WorksheetListView(ListView):
+class WorksheetListView(LoginRequiredMixin, ListView):
     model = Worksheet
     template_name = 'worksheets_list.html'
 
@@ -32,7 +33,7 @@ class WorksheetListView(ListView):
         return context
 
 
-class BaseWorksheetView(View):
+class BaseWorksheetView(LoginRequiredMixin):
     template_name = 'worksheets_form.html'
     form_class = WorksheetForm
     model = Worksheet
@@ -94,7 +95,7 @@ class BaseWorksheetView(View):
         if image:
             task = Task.objects.create(
                 worksheet=self.worksheet,
-                type=TaskType.objects.get(type=TaskType.Type.MULTIPLE_CHOICES_PICTURE),
+                type=TaskType.objects.get(type=TaskType.Type.CHOICES_PICTURE),
                 text=request.POST.get(f'task-{task_num}-text'),
             )
 
@@ -363,7 +364,7 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
     def prepare_type_4_task_data(self, task):
 
         questions = task.question_set.all()
-        options = questions[0].option_set.all() if questions[0] else []
+        options = questions[0].option_set.all() if questions else []
 
         correct_answers = []
         for question in questions:
@@ -375,7 +376,7 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
             correct_answers.append((question.text, correct_option))
 
         return {
-            'rows': options.count(),
+            'rows': options.count() if options else 0,
             'questions': task.question_set.count(),
             'options': [
                 {
@@ -516,7 +517,7 @@ class CheckFormDataAjaxView(View):
             self.errors[f'select-{task_num}'] = 'Každé číslo může být použito pouze jednou.'
 
 
-class WorksheetDeleteView(DeleteView):
+class WorksheetDeleteView(LoginRequiredMixin, DeleteView):
     model = Worksheet
 
     def dispatch(self, request, *args, **kwargs):
