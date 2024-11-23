@@ -8,9 +8,15 @@ from visitors.models import SchoolGroup
 from areas.models import Area
 from .forms import WorksheetForm
 from .models import Worksheet, TaskType, Task, Question, Option, TaskImage
+from .serializers import WorksheetSerializer
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
 
 import re
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -526,4 +532,15 @@ class WorksheetDeleteView(DeleteView):
 
     def get_success_url(self):
         return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
+
+
+class WorksheetByAreaAPIView(APIView):
+
+    def get(self, request, area_id):
+        worksheets = Worksheet.objects.filter(area_id=area_id)
+        if not worksheets.exists():
+            return Response({"detail": "No worksheets found for this area."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = WorksheetSerializer(worksheets, many=True)
+        return Response(serializer.data)
 
