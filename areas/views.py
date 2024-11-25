@@ -112,11 +112,40 @@ class PlantUpdateView(LoginRequiredMixin, UpdateView):
         context = super().get_context_data(**kwargs)
 
         context['area'] = self.area
+        context['images'] = [{
+            'pk': image.pk,
+            'url': image.image.url}
+            for image in PlantImage.objects.filter(plant=self.object)
+        ]
 
         return context
 
+    def form_valid(self, form):
+        self.object = form.save()
 
-class PlantDeleteView(LoginRequiredMixin,DeleteView):
+        plant_images = []
+        images = {k: v for (k, v) in self.request.POST.items() if k.endswith('image-original')}
+
+        for key, image_pk in images.items():
+            image_id = key.split('-')[0]
+
+            if self.request.FILES.get(f'{image_id}-image'):
+                image = PlantImage.objects.create(
+                    plant=self.object,
+                    image=self.request.FILES.get(f'{image_id}-image')
+                )
+                plant_images.append(image.pk)
+
+            elif image_pk:
+                plant_images.append(image_pk)
+
+        # Delete old images
+        PlantImage.objects.filter(plant=self.object).exclude(id__in=plant_images).delete()
+
+        return super().form_valid(form)
+
+
+class PlantDeleteView(LoginRequiredMixin, DeleteView):
     model = Plant
 
     def dispatch(self, request, *args, **kwargs):

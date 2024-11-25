@@ -9,9 +9,9 @@
     <!-- Header with large icon and title -->
     <div class="flex items-center mb-8">
         {% if area.icon %}
-            <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-16 mr-4">
+            <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-16 mx-4">
         {% else %}
-            <img src="{% static 'area_placeholder.png' %}" class="h-16 mr-4">
+            <img src="{% static 'area_placeholder.png' %}" class="h-16 mx-4">
         {% endif %}
         <h1 class="text-3xl font-bold text-gray-700">{{ area.title }}</h1>
     </div>
@@ -35,7 +35,7 @@
         <div class="grid grid-cols-2 gap-4">
 
             {% for plant in plants %}
-            <div class="border border-gray-200 rounded-md overflow-hidden flex p-2">
+            <div class="border border-gray-200 rounded-md overflow-hidden items-center justify-between flex p-2">
 
                 <div class="w-1/3 flex justify-center">
                 {% if plant.image %}
@@ -49,10 +49,10 @@
                         <h2 class="text-l font-bold text-gray-700">{{ plant.name }}</h2>
                 </div>
 
-                <div class="flex space-x-4 p-6">
-                    <button class="text-yellow-400 hover:text-yellow-500">
+                <div class="flex space-x-4 p-4">
+                    <a href="{% url 'areas:plants_update' area.pk plant.pk %}" class="text-yellow-400 hover:text-yellow-500">
                         <i class="fa fa-edit fa-lg"></i>
-                    </button>
+                    </a>
                     <button onclick="openModal('{{ plant.pk }}', '{{ area.pk }}', '{{ plant.name }}')" class="text-red-400 hover:text-red-500">
                         <i class="fa-regular fa-trash-can fa-lg"></i>
                     </button>
