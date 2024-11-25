@@ -313,6 +313,9 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
             elif value == '5':
                 self.create_type_5_task(request, task_num)
 
+        # Delete unused images
+        TaskImage.objects.filter(image__isnull=True).delete()
+
         return super().post(request, *args, **kwargs)
 
     def prepare_task_data(self, task):
@@ -434,6 +437,17 @@ class CheckFormDataAjaxView(View):
 
         if not title:
             self.errors['title'] = "Název je povinný."
+        else:
+            if len(title) > 50:
+                self.errors['title'] = 'Název může mít max. 50 znaků.'
+
+            worksheet_pk = request.POST.get('worksheet_pk')
+            if worksheet_pk:
+                if Worksheet.objects.exclude(pk=worksheet_pk).filter(title=title).exists():
+                    self.errors['title'] = 'Pracovní list s tímto názvem již existuje.'
+            else:
+                if Worksheet.objects.filter(title=title).exists():
+                    self.errors['title'] = 'Pracovní list s tímto názvem již existuje.'
 
 
         tasks = {k: v for (k, v) in request.POST.items() if k.startswith('task') and k.endswith('type')}

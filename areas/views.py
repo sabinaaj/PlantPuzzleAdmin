@@ -168,6 +168,9 @@ class CheckFormDataAjaxView(View):
 
         if not title:
             self.errors['name'] = "Název je povinný."
+        else:
+            if len(title) > 100:
+                self.errors['name'] = 'Název může mít max. 50 znaků.'
 
         if self.errors:
             return JsonResponse({'status': False, 'errors': self.errors})

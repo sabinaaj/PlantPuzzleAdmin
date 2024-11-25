@@ -44,3 +44,11 @@ class Option(models.Model):
 class TaskImage(models.Model):
     task = models.ForeignKey(Task, on_delete=models.SET_NULL, blank=True, null=True)
     image = models.ImageField(upload_to='question_images/', blank=True, null=True)
+
+@receiver(post_delete, sender=TaskImage)
+def delete_task_image(sender, instance, **kwargs):
+
+    if instance.image:
+        image_path = instance.image.path
+        if default_storage.exists(image_path):
+            default_storage.delete(image_path)

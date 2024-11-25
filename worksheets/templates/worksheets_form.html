@@ -105,6 +105,7 @@
 
         const form = event.target;
         const formData = new FormData(form);
+        formData.append('worksheet_pk', {% if worksheet %}{{ worksheet.pk }}{% else %}0{% endif %});
 
         fetch(`/worksheets/check_form_data/`, {
             method: 'POST',
