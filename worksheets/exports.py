@@ -8,6 +8,7 @@ from django.template.loader import render_to_string
 from .models import Worksheet
 
 import pdfkit
+import re
 
 from .views import logger
 
@@ -36,7 +37,7 @@ class WorksheetExportView(View):
         html_content = render_to_string('worksheet_export.html', context)
 
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename=pracovni_list_{self.worksheet.title}.pdf'
+        response['Content-Disposition'] = f'attachment; filename=pracovni_list.pdf'
 
         pdf = pdfkit.from_string(html_content, False, options=options)
         response.write(pdf)
@@ -131,7 +132,7 @@ class WorksheetExportWithAnswersView(View):
         html_content = render_to_string('worksheet_export_with_answers.html', context)
 
         response = HttpResponse(content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename=pracovni_list_s_odpovedmi_{self.worksheet.title}.pdf'
+        response['Content-Disposition'] = f'attachment; filename=pracovni_list_s_odpovedmi.pdf'
 
         pdf = pdfkit.from_string(html_content, False, options=options)
         response.write(pdf)
