@@ -1,6 +1,7 @@
 from django.views.generic import TemplateView, CreateView, UpdateView, DeleteView, ListView, View
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from rest_framework import viewsets
 
@@ -13,13 +14,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class AreaListView(ListView):
+class AreaListView(LoginRequiredMixin, ListView):
     model = Area
     template_name = "areas_list.html"
     context_object_name = "areas"
 
 
-class AreaCreateView(CreateView):
+class AreaCreateView(LoginRequiredMixin, CreateView):
     template_name = "areas_form.html"
     form_class = AreaForm
     model = Area
@@ -28,7 +29,7 @@ class AreaCreateView(CreateView):
         return reverse("areas:area_list")
 
 
-class AreaUpdateView(UpdateView):
+class AreaUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "areas_form.html"
     form_class = AreaForm
     model = Area
@@ -37,12 +38,12 @@ class AreaUpdateView(UpdateView):
         return reverse("areas:area_list")
 
 
-class AreaDeleteView(DeleteView):
+class AreaDeleteView(LoginRequiredMixin, DeleteView):
     model = Area
     success_url = reverse_lazy("areas:area_list")
 
 
-class PlantListView(TemplateView):
+class PlantListView(LoginRequiredMixin, TemplateView):
     template_name = "plants_list.html"
 
     def dispatch(self, request, *args, **kwargs):
@@ -59,7 +60,7 @@ class PlantListView(TemplateView):
         return context
 
 
-class PlantCreateView(CreateView):
+class PlantCreateView(LoginRequiredMixin, CreateView):
     template_name = "plants_form.html"
     form_class = PlantForm
     model = Plant
@@ -94,7 +95,7 @@ class PlantCreateView(CreateView):
         return super().form_valid(form)
 
 
-class PlantUpdateView(UpdateView):
+class PlantUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "plants_form.html"
     form_class = PlantForm
     model = Plant
@@ -111,11 +112,40 @@ class PlantUpdateView(UpdateView):
         context = super().get_context_data(**kwargs)
 
         context['area'] = self.area
+        context['images'] = [{
+            'pk': image.pk,
+            'url': image.image.url}
+            for image in PlantImage.objects.filter(plant=self.object)
+        ]
 
         return context
 
+    def form_valid(self, form):
+        self.object = form.save()
 
-class PlantDeleteView(DeleteView):
+        plant_images = []
+        images = {k: v for (k, v) in self.request.POST.items() if k.endswith('image-original')}
+
+        for key, image_pk in images.items():
+            image_id = key.split('-')[0]
+
+            if self.request.FILES.get(f'{image_id}-image'):
+                image = PlantImage.objects.create(
+                    plant=self.object,
+                    image=self.request.FILES.get(f'{image_id}-image')
+                )
+                plant_images.append(image.pk)
+
+            elif image_pk:
+                plant_images.append(image_pk)
+
+        # Delete old images
+        PlantImage.objects.filter(plant=self.object).exclude(id__in=plant_images).delete()
+
+        return super().form_valid(form)
+
+
+class PlantDeleteView(LoginRequiredMixin, DeleteView):
     model = Plant
 
     def dispatch(self, request, *args, **kwargs):
@@ -138,6 +168,9 @@ class CheckFormDataAjaxView(View):
 
         if not title:
             self.errors['name'] = "Název je povinný."
+        else:
+            if len(title) > 100:
+                self.errors['name'] = 'Název může mít max. 50 znaků.'
 
         if self.errors:
             return JsonResponse({'status': False, 'errors': self.errors})

@@ -13,13 +13,13 @@ class AreaForm(forms.ModelForm):
         instance = self.instance
         if instance.pk:
             if Area.objects.exclude(pk=instance.pk).filter(title=title).exists():
-                raise forms.ValidationError('Oblast s tímto názvem již existuje')
+                raise forms.ValidationError('Oblast s tímto názvem již existuje.')
         else:
             if Area.objects.filter(title=title).exists():
-                raise forms.ValidationError('Oblast s tímto názvem již existuje')
+                raise forms.ValidationError('Oblast s tímto názvem již existuje.')
 
         if len(title) > 50:
-            raise forms.ValidationError('Název může mít max. 50 znaků')
+            raise forms.ValidationError('Název může mít max. 50 znaků.')
 
         return title
 
