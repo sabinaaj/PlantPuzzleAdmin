@@ -20,7 +20,7 @@
     <div class="flex">
         <div class="flex space-x-0.5">
             <button class="bg-brown-500 text-gray-700 font-medium px-3 py-2 rounded-t-md shadow-[0px_-2px_3px_rgba(0,0,0,0.1)]">Pracovní listy</button>
-                <a href="{% url 'areas:plants_list' %}" class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1),_inset_0_-1px_3px_rgba(0,0,0,0.1)]">
+                <a href="{% url 'areas:plants_list' area.pk %}" class="bg-white text-gray-700 font-medium px-3 py-2 rounded-t-md hover:bg-gray-200 hover:border-gray-700 shadow-[0px_-2px_3px_rgba(0,0,0,0.1),_inset_0_-1px_3px_rgba(0,0,0,0.1)]">
                     Rostliny
                 </a>
         </div>

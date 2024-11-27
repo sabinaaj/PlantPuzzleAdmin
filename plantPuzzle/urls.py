@@ -7,7 +7,7 @@ from django.conf import settings
 from .views import CustomLoginView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/areas/list', permanent=False)),
+    path('', RedirectView.as_view(url='login', permanent=False)),
     path("admin/", admin.site.urls),
     path("__reload__/", include("django_browser_reload.urls")),
 

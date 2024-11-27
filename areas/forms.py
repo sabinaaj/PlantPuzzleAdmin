@@ -1,6 +1,6 @@
 from django import forms
 
-from areas.models import Area
+from areas.models import Area, Plant
 
 class AreaForm(forms.ModelForm):
     class Meta:
@@ -22,3 +22,9 @@ class AreaForm(forms.ModelForm):
             raise forms.ValidationError('Název může mít max. 50 znaků')
 
         return title
+
+
+class PlantForm(forms.ModelForm):
+    class Meta:
+        model = Plant
+        fields = ['name']
