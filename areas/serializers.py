@@ -9,7 +9,7 @@ class AreaSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'icon_url']
 
     def get_icon_url(self, obj):
-        request = self.context.get('request')  # Získání požadavku z kontextu
+        request = self.context.get('request')
         if obj.icon:
             return request.build_absolute_uri(obj.icon.url)
         return None
