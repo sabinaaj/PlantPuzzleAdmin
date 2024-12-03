@@ -42,6 +42,9 @@ class QuestionSerializer(serializers.ModelSerializer):
 
             representation['options'] = new_options
 
+        if task and task.type == TaskType.objects.get(type=TaskType.Type.PAIRS):
+            shuffle(representation['options'])
+
         return representation
 
 

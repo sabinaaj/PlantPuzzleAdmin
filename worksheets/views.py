@@ -472,7 +472,7 @@ class CheckFormDataAjaxView(View):
             if not question:
                 self.errors[question_name] = 'Toto pole je povinné.'
             elif len(question) >= 100:
-                self.errors[question_name] = f'Maximální počet znaků je 150. Máte {len(question)}.'
+                self.errors[question_name] = f'Maximální počet znaků je 100. Máte {len(question)}.'
 
         options = {k:v for (k, v) in request.POST.items() if k.startswith('option') and k.endswith('text')}
         for option_name, option in options.items():
@@ -488,8 +488,8 @@ class CheckFormDataAjaxView(View):
             task_text = request.POST.get(f'task-{task_num}-text')
             if not task_text:
                 self.errors[f'task-{task_num}-text'] = 'Zadání je povinné.'
-            elif len(task_text) >= 150:
-                self.errors[f'task-{task_num}-text'] = f'Maximální počet znaků je 150. Máte {len(task_text)}.'
+            elif len(task_text) >= 100:
+                self.errors[f'task-{task_num}-text'] = f'Maximální počet znaků je 100. Máte {len(task_text)}.'
 
             elif value == '2':
                 self.check_type_2_or_3_task_data(request, task_num)

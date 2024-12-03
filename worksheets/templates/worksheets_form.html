@@ -84,7 +84,7 @@
 
 
 <script>
-    const maxRows = 20;
+    const maxRows = 10;
     const minRows = 1;
 
     let taskCount = 0;
@@ -195,7 +195,6 @@
             loadTaskForm(taskTypeSelect, taskCount, data);
         }
 
-        updateTaskNumbers();
         document.getElementById('addTaskButtonContainer').style.display = 'flex';
     }
 
@@ -213,7 +212,6 @@
         tasks.forEach((task, index) => {
             task.querySelector('h4').textContent = `${index + 1}. úloha`;
         });
-        taskCount = tasks.length;
     }
 
     function loadTaskForm(selectElement, taskId, taskData = {}) {
