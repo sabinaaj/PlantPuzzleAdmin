@@ -320,7 +320,7 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
                 self.create_type_5_task(request, task_num)
 
         # Delete unused images
-        TaskImage.objects.filter(image__isnull=True).delete()
+        TaskImage.objects.filter(task__isnull=True).delete()
 
         return super().post(request, *args, **kwargs)
 
