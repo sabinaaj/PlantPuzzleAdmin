@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Worksheet, Task, Question, Option, TaskImage, TaskType
 
-from random import shuffle
+from random import Random, shuffle
 
 
 class WorksheetsSerializer(serializers.ModelSerializer):
@@ -43,7 +43,9 @@ class QuestionSerializer(serializers.ModelSerializer):
             representation['options'] = new_options
 
         if task and task.type == TaskType.objects.get(type=TaskType.Type.PAIRS):
-            shuffle(representation['options'])
+            seed = hash(task.id)  # generate seed based on task id
+            random_instance = Random(seed)
+            random_instance.shuffle(representation['options'])
 
         return representation
 
