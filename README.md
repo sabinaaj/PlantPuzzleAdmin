@@ -22,7 +22,7 @@ Tento diagram znázorňuje architekturu systému PlantPuzzle a propojení mezi j
 
 
 ### Diagram aktivit
-
+Diagram aktivit popisuje průchod uživatele mobilní aplikací od zapnutí aplikace skrz vyplňování pracovních listů.
 
 ![Diagram Aktivit](diagrams/activity.png?raw=true )
 
