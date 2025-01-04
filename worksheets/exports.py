@@ -8,7 +8,6 @@ from django.template.loader import render_to_string
 from .models import Worksheet
 
 import pdfkit
-import re
 
 from .views import logger
 
@@ -32,7 +31,13 @@ class WorksheetExportView(View):
             ]
         }
 
-        options = {'enable-local-file-access': ''}
+        options = {
+            'enable-local-file-access': '',
+            'margin-top': '20mm',
+            'margin-left': '5mm',
+            'margin-right': '5mm',
+            'margin-bottom': '5mm',
+        }
 
         html_content = render_to_string('worksheet_export.html', context)
 
@@ -127,7 +132,13 @@ class WorksheetExportWithAnswersView(View):
             ]
         }
 
-        options = {'enable-local-file-access': ''}
+        options = {
+            'enable-local-file-access': '',
+            'margin-top': '20mm',
+            'margin-left': '15mm',
+            'margin-right': '15mm',
+            'margin-bottom': '15mm',
+        }
 
         html_content = render_to_string('worksheet_export_with_answers.html', context)
 

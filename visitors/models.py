@@ -36,7 +36,7 @@ class VisitorResponse(models.Model):
 
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
-    option = models.ForeignKey(Option, on_delete=models.CASCADE)
+    options = models.ManyToManyField(Option)
 
 
 class SuccessRate(models.Model):

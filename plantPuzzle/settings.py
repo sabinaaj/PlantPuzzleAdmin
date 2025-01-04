@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'areas',
     'visitors',
     'worksheets',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [

@@ -9,11 +9,12 @@ from visitors.models import SchoolGroup
 from areas.models import Area
 from .forms import WorksheetForm
 from .models import Worksheet, TaskType, Task, Question, Option, TaskImage
-from .serializers import WorksheetSerializer
+from .serializers import WorksheetsSerializer, WorksheetSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from drf_yasg.utils import swagger_auto_schema
 
 import re
 import logging
@@ -69,7 +70,13 @@ class BaseWorksheetView(LoginRequiredMixin):
         return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
 
     def create_type_1_task(self, request, task_num):
+        """
+        Creates a type 1 task with the associated questions and options.
 
+        Args:
+            request: The HTTP request object containing POST data.
+            task_num: The task number identifier for the task and related fields.
+        """
         task = Task.objects.create(
             worksheet=self.worksheet,
             type=TaskType.objects.get(type=TaskType.Type.TWO_CHOICES),
@@ -79,9 +86,10 @@ class BaseWorksheetView(LoginRequiredMixin):
         option_text_0 = request.POST.get(f'option_{task_num}-0-text')
         option_text_1 = request.POST.get(f'option_{task_num}-1-text')
 
-        questions = {k:v for (k, v) in request.POST.items() if k.startswith(f'question_{task_num}') and k.endswith('text')}
+        # Retrieve all questions associated with the task from the request
+        questions = {k: v for (k, v) in request.POST.items() if k.startswith(f'question_{task_num}') and k.endswith('text')}
         for question_name, question_text in questions.items():
-
+            # Extract the question number from the question name
             question_num = re.findall(r'\d+', question_name)[1]
 
             question = Question.objects.create(
@@ -89,6 +97,7 @@ class BaseWorksheetView(LoginRequiredMixin):
                 text=question_text
             )
 
+            # Determine if the first option is the correct one
             is_correct_0 = request.POST.get(f'option_{task_num}-{question_num}-is_correct') == 'is_correct_0'
 
             Option.objects.bulk_create([
@@ -320,7 +329,7 @@ class WorksheetUpdateView(BaseWorksheetView, UpdateView):
                 self.create_type_5_task(request, task_num)
 
         # Delete unused images
-        TaskImage.objects.filter(image__isnull=True).delete()
+        TaskImage.objects.filter(task__isnull=True).delete()
 
         return super().post(request, *args, **kwargs)
 
@@ -472,7 +481,7 @@ class CheckFormDataAjaxView(View):
             if not question:
                 self.errors[question_name] = 'Toto pole je povinné.'
             elif len(question) >= 100:
-                self.errors[question_name] = f'Maximální počet znaků je 150. Máte {len(question)}.'
+                self.errors[question_name] = f'Maximální počet znaků je 100. Máte {len(question)}.'
 
         options = {k:v for (k, v) in request.POST.items() if k.startswith('option') and k.endswith('text')}
         for option_name, option in options.items():
@@ -488,8 +497,8 @@ class CheckFormDataAjaxView(View):
             task_text = request.POST.get(f'task-{task_num}-text')
             if not task_text:
                 self.errors[f'task-{task_num}-text'] = 'Zadání je povinné.'
-            elif len(task_text) >= 150:
-                self.errors[f'task-{task_num}-text'] = f'Maximální počet znaků je 150. Máte {len(task_text)}.'
+            elif len(task_text) >= 100:
+                self.errors[f'task-{task_num}-text'] = f'Maximální počet znaků je 100. Máte {len(task_text)}.'
 
             elif value == '2':
                 self.check_type_2_or_3_task_data(request, task_num)
@@ -549,13 +558,28 @@ class WorksheetDeleteView(LoginRequiredMixin, DeleteView):
         return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
 
 
-class WorksheetByAreaAPIView(APIView):
-
+class WorksheetsByAreaAPIView(APIView):
+    @swagger_auto_schema(
+        operation_description="Vrací všechny pracovní listy pro danou oblast.",
+    )
     def get(self, request, area_id):
         worksheets = Worksheet.objects.filter(area_id=area_id)
         if not worksheets.exists():
             return Response({"detail": "No worksheets found for this area."}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = WorksheetSerializer(worksheets, many=True)
+        serializer = WorksheetsSerializer(worksheets, many=True)
         return Response(serializer.data)
 
+
+class WorksheetAPIView(APIView):
+    @swagger_auto_schema(
+        operation_description="Vrací pracovní list podle jeho ID.",
+    )
+
+    def get(self, request, worksheet_id):
+        worksheet = Worksheet.objects.filter(pk=worksheet_id).first()
+        if not worksheet:
+            return Response({"detail": "No worksheet found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = WorksheetSerializer(worksheet, context={'request': request})
+        return Response(serializer.data)
