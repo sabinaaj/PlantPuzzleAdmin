@@ -27,6 +27,8 @@ urlpatterns = [
 
     path("areas/", include("areas.urls")),
     path("worksheets/", include("worksheets.urls")),
+    path("visitors/", include("visitors.urls")),
+
 
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page=settings.LOGOUT_REDIRECT_URL), name='logout'),

@@ -18,6 +18,7 @@ urlpatterns = [
     path('load_task_form/<str:task_type>/', LoadTaskFormView.as_view(), name='load_task_form'),
     path('check_form_data/', CheckFormDataAjaxView.as_view(), name='check_form_data'),
 
+    #path('api/submit-responses/', SubmitResponsesView.as_view(), name='submit-responses'),
     path('api/<int:area_id>/worksheets/', WorksheetsByAreaAPIView.as_view(), name='worksheets_by_area'),
     path('api/<int:worksheet_id>/worksheet/', WorksheetAPIView.as_view(), name='worksheet'),
 ]
