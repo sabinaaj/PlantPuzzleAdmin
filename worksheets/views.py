@@ -63,7 +63,7 @@ class BaseWorksheetView(LoginRequiredMixin):
         return HttpResponseRedirect(self.get_success_url())
 
     def form_invalid(self, form):
-        messages.error(self.request, "Formulář obsahuje chyby, prosím opravte je a zkuste znovu.")
+        messages.error(self.request, 'Formulář obsahuje chyby, prosím opravte je a zkuste znovu.')
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_success_url(self):
@@ -451,7 +451,7 @@ class CheckFormDataAjaxView(View):
         title = request.POST.get('title')
 
         if not title:
-            self.errors['title'] = "Název je povinný."
+            self.errors['title'] = 'Název je povinný.'
         else:
             if len(title) > 50:
                 self.errors['title'] = 'Název může mít max. 50 znaků.'
@@ -560,12 +560,12 @@ class WorksheetDeleteView(LoginRequiredMixin, DeleteView):
 
 class WorksheetsByAreaAPIView(APIView):
     @swagger_auto_schema(
-        operation_description="Vrací všechny pracovní listy pro danou oblast.",
+        operation_description='Vrací všechny pracovní listy pro danou oblast.',
     )
     def get(self, request, area_id):
         worksheets = Worksheet.objects.filter(area_id=area_id)
         if not worksheets.exists():
-            return Response({"detail": "No worksheets found for this area."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'No worksheets found for this area.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = WorksheetsSerializer(worksheets, many=True)
         return Response(serializer.data)
@@ -573,13 +573,13 @@ class WorksheetsByAreaAPIView(APIView):
 
 class WorksheetAPIView(APIView):
     @swagger_auto_schema(
-        operation_description="Vrací pracovní list podle jeho ID.",
+        operation_description='Vrací pracovní list podle jeho ID.',
     )
 
     def get(self, request, worksheet_id):
         worksheet = Worksheet.objects.filter(pk=worksheet_id).first()
         if not worksheet:
-            return Response({"detail": "No worksheet found."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'No worksheet found.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = WorksheetSerializer(worksheet, context={'request': request})
         return Response(serializer.data)

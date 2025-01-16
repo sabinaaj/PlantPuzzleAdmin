@@ -16,35 +16,35 @@ logger = logging.getLogger(__name__)
 
 class AreaListView(LoginRequiredMixin, ListView):
     model = Area
-    template_name = "areas_list.html"
-    context_object_name = "areas"
+    template_name = 'areas_list.html'
+    context_object_name = 'areas'
 
 
 class AreaCreateView(LoginRequiredMixin, CreateView):
-    template_name = "areas_form.html"
+    template_name = 'areas_form.html'
     form_class = AreaForm
     model = Area
 
     def get_success_url(self):
-        return reverse("areas:area_list")
+        return reverse('areas:area_list')
 
 
 class AreaUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = "areas_form.html"
+    template_name = 'areas_form.html'
     form_class = AreaForm
     model = Area
 
     def get_success_url(self):
-        return reverse("areas:area_list")
+        return reverse('areas:area_list')
 
 
 class AreaDeleteView(LoginRequiredMixin, DeleteView):
     model = Area
-    success_url = reverse_lazy("areas:area_list")
+    success_url = reverse_lazy('areas:area_list')
 
 
 class PlantListView(LoginRequiredMixin, TemplateView):
-    template_name = "plants_list.html"
+    template_name = 'plants_list.html'
 
     def dispatch(self, request, *args, **kwargs):
         self.area = get_object_or_404(Area, pk=kwargs['area'])
@@ -61,12 +61,12 @@ class PlantListView(LoginRequiredMixin, TemplateView):
 
 
 class PlantCreateView(LoginRequiredMixin, CreateView):
-    template_name = "plants_form.html"
+    template_name = 'plants_form.html'
     form_class = PlantForm
     model = Plant
 
     def get_success_url(self):
-        return reverse("areas:plants_list",  kwargs={'area': self.area.pk})
+        return reverse('areas:plants_list',  kwargs={'area': self.area.pk})
 
     def dispatch(self, request, *args, **kwargs):
         self.area = get_object_or_404(Area, pk=kwargs['area'])
@@ -96,12 +96,12 @@ class PlantCreateView(LoginRequiredMixin, CreateView):
 
 
 class PlantUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = "plants_form.html"
+    template_name = 'plants_form.html'
     form_class = PlantForm
     model = Plant
 
     def get_success_url(self):
-        return reverse("areas:plants_list",  kwargs={'area': self.area.pk})
+        return reverse('areas:plants_list',  kwargs={'area': self.area.pk})
 
     def dispatch(self, request, *args, **kwargs):
         self.area = get_object_or_404(Area, pk=kwargs['area'])
@@ -154,7 +154,7 @@ class PlantDeleteView(LoginRequiredMixin, DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse("areas:plants_list",  kwargs={'area': self.area.pk})
+        return reverse('areas:plants_list',  kwargs={'area': self.area.pk})
 
 
 class CheckFormDataAjaxView(View):
@@ -167,7 +167,7 @@ class CheckFormDataAjaxView(View):
         title = request.POST.get('name')
 
         if not title:
-            self.errors['name'] = "Název je povinný."
+            self.errors['name'] = 'Název je povinný.'
         else:
             if len(title) > 100:
                 self.errors['name'] = 'Název může mít max. 50 znaků.'

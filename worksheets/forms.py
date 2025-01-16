@@ -8,10 +8,10 @@ class WorksheetForm(forms.ModelForm):
     school_group = forms.ModelMultipleChoiceField(
         queryset=SchoolGroup.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        label="Určeno pro",
+        label='Určeno pro',
         required=False
     )
 
     class Meta:
         model = Worksheet
-        fields = ["title", "school_group"]
+        fields = ['title', 'school_group']
