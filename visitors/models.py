@@ -47,3 +47,4 @@ class SuccessRate(models.Model):
     rate = models.PositiveSmallIntegerField()
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -107,7 +107,7 @@
         const formData = new FormData(form);
         formData.append('worksheet_pk', {% if worksheet %}{{ worksheet.pk }}{% else %}0{% endif %});
 
-        fetch(`/worksheets/check_form_data/`, {
+        fetch(`/worksheets/check-form-data/`, {
             method: 'POST',
             body: formData,
         })
@@ -219,7 +219,7 @@
         const formContainer = document.getElementById(`formContainer${taskId}`);
 
         if (type) {
-            fetch(`/worksheets/load_task_form/${type}/`)
+            fetch(`/worksheets/load-task-form/${type}/`)
                 .then(response => response.json())
                 .then(data => {
                     formContainer.innerHTML = data.html.replace(/TaskId/g, taskId);

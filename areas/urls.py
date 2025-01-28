@@ -2,7 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import AreaListView, AreaCreateView, AreaUpdateView, AreaDeleteView, PlantListView, AreaViewSet, \
-    PlantCreateView, PlantUpdateView, PlantDeleteView, CheckFormDataAjaxView
+    PlantCreateView, PlantUpdateView, PlantDeleteView, CheckFormDataAjaxView, GetAreaStats
 
 app_name = 'areas'
 
@@ -20,7 +20,8 @@ urlpatterns = [
     path('<int:area>/plants/<int:pk>/update', PlantUpdateView.as_view(), name='plants_update'),
     path('<int:area>/plants/<int:pk>/delete', PlantDeleteView.as_view(), name='plants_delete'),
 
-    path('check_form_data/', CheckFormDataAjaxView.as_view(), name='check_form_data'),
+    path('check-form-data/', CheckFormDataAjaxView.as_view(), name='check_form_data'),
 
     path('api/', include(router.urls)),
+    path('api/<int:area_id>/<int:visitor_id>/get-area-stats/', GetAreaStats.as_view(), name='get_area_stats'),
 ]

@@ -3,8 +3,13 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from rest_framework import viewsets
+from django.db.models import Avg
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
+from visitors.models import Visitor, SuccessRate
+from worksheets.models import Worksheet
 from worksheets.views import logger
 from .serializers import AreaSerializer
 from areas.forms import AreaForm, PlantForm
@@ -182,3 +187,44 @@ class CheckFormDataAjaxView(View):
 class AreaViewSet(viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
+
+
+class GetAreaStats(APIView):
+
+    def get(self, request, area_id, visitor_id):
+
+        try:
+            area = Area.objects.get(id=area_id)
+            visitor = Visitor.objects.get(id=visitor_id)
+        except Area.DoesNotExist:
+            return Response(
+                {"error": f"Area with id {area_id} does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Visitor.DoesNotExist:
+            return Response(
+                {"error": f"Visitor with id {visitor_id} does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        worksheets = Worksheet.objects.filter(area=area)
+        # Get latest success rate for each worksheet and visitor combination
+        latest_rates = (SuccessRate.objects.filter(worksheet__in=worksheets, visitor=visitor)
+                        .order_by('worksheet', 'visitor', '-created_at')
+                        .distinct('worksheet', 'visitor'))
+
+        worksheet_cnt = worksheets.count()
+        done_worksheets_cnt = latest_rates.count()
+
+        # Count average success rate
+        rates_list = list(latest_rates.values_list('rate', flat=True))
+        avg_success_rate = sum(rates_list) / len(rates_list) if rates_list else 0
+
+        return Response(
+            {
+                "worksheet_count": worksheet_cnt,
+                "done_worksheet_count": done_worksheets_cnt,
+                "average_success_rate": avg_success_rate,
+            },
+            status=status.HTTP_200_OK,
+        )

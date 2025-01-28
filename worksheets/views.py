@@ -5,8 +5,9 @@ from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from visitors.models import SchoolGroup
+from visitors.models import SchoolGroup, SuccessRate
 from areas.models import Area
+from visitors.serializers import SuccessRateSerializer
 from .forms import WorksheetForm
 from .models import Worksheet, TaskType, Task, Question, Option, TaskImage
 from .serializers import WorksheetsSerializer, WorksheetSerializer
@@ -562,13 +563,22 @@ class WorksheetsByAreaAPIView(APIView):
     @swagger_auto_schema(
         operation_description='Vrací všechny pracovní listy pro danou oblast.',
     )
-    def get(self, request, area_id):
+    def get(self, request, area_id, visitor_id):
         worksheets = Worksheet.objects.filter(area_id=area_id)
         if not worksheets.exists():
             return Response({'detail': 'No worksheets found for this area.'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = WorksheetsSerializer(worksheets, many=True)
-        return Response(serializer.data)
+
+        # add success rate
+        worksheets_with_rate = []
+        for worksheet in worksheets:
+            success_rate = SuccessRate.objects.filter(worksheet=worksheet, visitor_id=visitor_id).latest('created_at')
+            worksheet_data = WorksheetsSerializer(worksheet).data
+            worksheet_data['success_rate'] = success_rate.rate if success_rate else None
+            worksheets_with_rate.append(worksheet_data)
+
+        return Response(worksheets_with_rate)
 
 
 class WorksheetAPIView(APIView):
