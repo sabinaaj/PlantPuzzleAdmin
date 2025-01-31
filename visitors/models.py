@@ -24,10 +24,11 @@ class Achievement(models.Model):
 
 
 class Visitor(models.Model):
+    username = models.CharField(max_length=50)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
     school = models.ForeignKey(School, on_delete=models.CASCADE, null=True, blank=True)
-    school_group = models.ForeignKey(SchoolGroup, on_delete=models.CASCADE, null=True, blank=True)
+    school_group = models.ManyToManyField(SchoolGroup)
     achievements = models.ManyToManyField(Achievement)
 
 
@@ -37,6 +38,7 @@ class VisitorResponse(models.Model):
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     options = models.ManyToManyField(Option)
+    is_correct = models.BooleanField(default=False)
 
 
 class SuccessRate(models.Model):
@@ -45,3 +47,4 @@ class SuccessRate(models.Model):
     rate = models.PositiveSmallIntegerField()
     visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE)
     worksheet = models.ForeignKey(Worksheet, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)

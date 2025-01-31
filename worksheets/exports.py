@@ -93,7 +93,7 @@ class WorksheetExportView(View):
 
         return {
             'count': range(1, task.question_set.count() + 1),
-            'options': ", ".join(options),
+            'options': ', '.join(options),
         }
 
     def prepare_type_5_task_data(self, task):
@@ -213,7 +213,7 @@ class WorksheetExportWithAnswersView(View):
             })
 
         return {
-            'options': ", ".join(options),
+            'options': ', '.join(options),
             'correct_answers': correct_answers
         }
 

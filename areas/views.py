@@ -3,8 +3,13 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from rest_framework import viewsets
+from django.db.models import Avg
+from rest_framework import viewsets, status
+from rest_framework.views import APIView
+from rest_framework.response import Response
 
+from visitors.models import Visitor, SuccessRate
+from worksheets.models import Worksheet
 from worksheets.views import logger
 from .serializers import AreaSerializer
 from areas.forms import AreaForm, PlantForm
@@ -16,35 +21,35 @@ logger = logging.getLogger(__name__)
 
 class AreaListView(LoginRequiredMixin, ListView):
     model = Area
-    template_name = "areas_list.html"
-    context_object_name = "areas"
+    template_name = 'areas_list.html'
+    context_object_name = 'areas'
 
 
 class AreaCreateView(LoginRequiredMixin, CreateView):
-    template_name = "areas_form.html"
+    template_name = 'areas_form.html'
     form_class = AreaForm
     model = Area
 
     def get_success_url(self):
-        return reverse("areas:area_list")
+        return reverse('areas:area_list')
 
 
 class AreaUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = "areas_form.html"
+    template_name = 'areas_form.html'
     form_class = AreaForm
     model = Area
 
     def get_success_url(self):
-        return reverse("areas:area_list")
+        return reverse('areas:area_list')
 
 
 class AreaDeleteView(LoginRequiredMixin, DeleteView):
     model = Area
-    success_url = reverse_lazy("areas:area_list")
+    success_url = reverse_lazy('areas:area_list')
 
 
 class PlantListView(LoginRequiredMixin, TemplateView):
-    template_name = "plants_list.html"
+    template_name = 'plants_list.html'
 
     def dispatch(self, request, *args, **kwargs):
         self.area = get_object_or_404(Area, pk=kwargs['area'])
@@ -61,12 +66,12 @@ class PlantListView(LoginRequiredMixin, TemplateView):
 
 
 class PlantCreateView(LoginRequiredMixin, CreateView):
-    template_name = "plants_form.html"
+    template_name = 'plants_form.html'
     form_class = PlantForm
     model = Plant
 
     def get_success_url(self):
-        return reverse("areas:plants_list",  kwargs={'area': self.area.pk})
+        return reverse('areas:plants_list',  kwargs={'area': self.area.pk})
 
     def dispatch(self, request, *args, **kwargs):
         self.area = get_object_or_404(Area, pk=kwargs['area'])
@@ -96,12 +101,12 @@ class PlantCreateView(LoginRequiredMixin, CreateView):
 
 
 class PlantUpdateView(LoginRequiredMixin, UpdateView):
-    template_name = "plants_form.html"
+    template_name = 'plants_form.html'
     form_class = PlantForm
     model = Plant
 
     def get_success_url(self):
-        return reverse("areas:plants_list",  kwargs={'area': self.area.pk})
+        return reverse('areas:plants_list',  kwargs={'area': self.area.pk})
 
     def dispatch(self, request, *args, **kwargs):
         self.area = get_object_or_404(Area, pk=kwargs['area'])
@@ -154,7 +159,7 @@ class PlantDeleteView(LoginRequiredMixin, DeleteView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
-        return reverse("areas:plants_list",  kwargs={'area': self.area.pk})
+        return reverse('areas:plants_list',  kwargs={'area': self.area.pk})
 
 
 class CheckFormDataAjaxView(View):
@@ -167,7 +172,7 @@ class CheckFormDataAjaxView(View):
         title = request.POST.get('name')
 
         if not title:
-            self.errors['name'] = "Název je povinný."
+            self.errors['name'] = 'Název je povinný.'
         else:
             if len(title) > 100:
                 self.errors['name'] = 'Název může mít max. 50 znaků.'
@@ -182,3 +187,44 @@ class CheckFormDataAjaxView(View):
 class AreaViewSet(viewsets.ModelViewSet):
     queryset = Area.objects.all()
     serializer_class = AreaSerializer
+
+
+class GetAreaStats(APIView):
+
+    def get(self, request, area_id, visitor_id):
+
+        try:
+            area = Area.objects.get(id=area_id)
+            visitor = Visitor.objects.get(id=visitor_id)
+        except Area.DoesNotExist:
+            return Response(
+                {"error": f"Area with id {area_id} does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        except Visitor.DoesNotExist:
+            return Response(
+                {"error": f"Visitor with id {visitor_id} does not exist."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        worksheets = Worksheet.objects.filter(area=area)
+        # Get latest success rate for each worksheet and visitor combination
+        latest_rates = (SuccessRate.objects.filter(worksheet__in=worksheets, visitor=visitor)
+                        .order_by('worksheet', 'visitor', '-created_at')
+                        .distinct('worksheet', 'visitor'))
+
+        worksheet_cnt = worksheets.count()
+        done_worksheets_cnt = latest_rates.count()
+
+        # Count average success rate
+        rates_list = list(latest_rates.values_list('rate', flat=True))
+        avg_success_rate = sum(rates_list) / len(rates_list) if rates_list else 0
+
+        return Response(
+            {
+                "worksheet_count": worksheet_cnt,
+                "done_worksheet_count": done_worksheets_cnt,
+                "average_success_rate": avg_success_rate,
+            },
+            status=status.HTTP_200_OK,
+        )

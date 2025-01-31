@@ -5,9 +5,10 @@ from random import Random, shuffle
 
 
 class WorksheetsSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Worksheet
-        fields = ['id', 'title', 'area']
+        fields = ['id', 'title']
 
 
 class OptionSerializer(serializers.ModelSerializer):
