@@ -3,7 +3,7 @@ from .models import Visitor, SchoolGroup, VisitorResponse, SuccessRate
 from worksheets.models import Question, Option, Worksheet
 
 
-class VisitorRegistrationSerializer(serializers.ModelSerializer):
+class VisitorSerializer(serializers.ModelSerializer):
     school_group = serializers.PrimaryKeyRelatedField(
         queryset=SchoolGroup.objects.all(),
         many=True
@@ -11,7 +11,7 @@ class VisitorRegistrationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Visitor
-        fields = ['username', 'first_name', 'last_name', 'school', 'school_group']
+        fields = ['id', 'school_group']
 
 class SchoolGroupSerializer(serializers.ModelSerializer):
     group = serializers.CharField(source='get_group_display', read_only=True)
@@ -19,13 +19,6 @@ class SchoolGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SchoolGroup
         fields = ['id', 'group']
-
-class VisitorSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Visitor
-        fields = ['id', 'username', 'first_name', 'last_name', 'school']
-
 
 class VisitorResponseSerializer(serializers.ModelSerializer):
     question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
