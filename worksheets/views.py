@@ -573,9 +573,9 @@ class WorksheetsByAreaAPIView(APIView):
         # add success rate
         worksheets_with_rate = []
         for worksheet in worksheets:
-            success_rate = SuccessRate.objects.filter(worksheet=worksheet, visitor_id=visitor_id).latest('created_at')
+            success_rate = SuccessRate.objects.filter(worksheet=worksheet, visitor_id=visitor_id)
             worksheet_data = WorksheetsSerializer(worksheet).data
-            worksheet_data['success_rate'] = success_rate.rate if success_rate else None
+            worksheet_data['success_rate'] = success_rate.latest('created_at').rate if success_rate else None
             worksheets_with_rate.append(worksheet_data)
 
         return Response(worksheets_with_rate)
