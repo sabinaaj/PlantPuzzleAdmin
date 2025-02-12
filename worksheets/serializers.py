@@ -3,14 +3,6 @@ from .models import Worksheet, Task, Question, Option, TaskImage, TaskType
 
 from random import Random, shuffle
 
-
-class WorksheetsSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Worksheet
-        fields = ['id', 'title']
-
-
 class OptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Option

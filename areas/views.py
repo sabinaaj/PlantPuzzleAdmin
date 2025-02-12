@@ -3,7 +3,7 @@ from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.db.models import Avg
+from django.db.models import Prefetch
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -189,7 +189,7 @@ class AreaViewSet(viewsets.ModelViewSet):
     serializer_class = AreaSerializer
 
 
-class GetAreaStats(APIView):
+class GetAreaStatsView(APIView):
 
     def get(self, request, area_id, visitor_id):
 
@@ -228,3 +228,16 @@ class GetAreaStats(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+class AreasAllView(APIView):
+
+    def post(self, request):
+        school_groups_ids = request.data.get('school_groups', [])
+
+        areas = Area.objects.prefetch_related(
+            Prefetch('worksheet_set', queryset=Worksheet.objects.filter(school_groups__in=[1, 2, 3, 4]).distinct())
+        ).all()
+
+        serializer = AreaSerializer(areas, many=True, context={'request': request})
+        return Response(serializer.data)

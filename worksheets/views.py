@@ -10,7 +10,7 @@ from areas.models import Area
 from visitors.serializers import SuccessRateSerializer
 from .forms import WorksheetForm
 from .models import Worksheet, TaskType, Task, Question, Option, TaskImage
-from .serializers import WorksheetsSerializer, WorksheetSerializer
+from .serializers import WorksheetSerializer
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -568,13 +568,13 @@ class WorksheetsByAreaAPIView(APIView):
         if not worksheets.exists():
             return Response({'detail': 'No worksheets found for this area.'}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = WorksheetsSerializer(worksheets, many=True)
+        serializer = WorksheetSerializer(worksheets, many=True)
 
         # add success rate
         worksheets_with_rate = []
         for worksheet in worksheets:
             success_rate = SuccessRate.objects.filter(worksheet=worksheet, visitor_id=visitor_id)
-            worksheet_data = WorksheetsSerializer(worksheet).data
+            worksheet_data = WorksheetSerializer(worksheet).data
             worksheet_data['success_rate'] = success_rate.latest('created_at').rate if success_rate else None
             worksheets_with_rate.append(worksheet_data)
 
