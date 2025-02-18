@@ -5,17 +5,10 @@ from django.shortcuts import get_object_or_404, reverse, HttpResponseRedirect
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-from visitors.models import SchoolGroup, SuccessRate
+from visitors.models import SchoolGroup
 from areas.models import Area
-from visitors.serializers import SuccessRateSerializer
 from .forms import WorksheetForm
 from .models import Worksheet, TaskType, Task, Question, Option, TaskImage
-from .serializers import WorksheetSerializer
-
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from drf_yasg.utils import swagger_auto_schema
 
 import re
 import logging
@@ -557,39 +550,3 @@ class WorksheetDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_success_url(self):
         return reverse('worksheets:worksheets_list', kwargs={'area': self.area.pk})
-
-
-class WorksheetsByAreaAPIView(APIView):
-    @swagger_auto_schema(
-        operation_description='Vrací všechny pracovní listy pro danou oblast.',
-    )
-    def get(self, request, area_id, visitor_id):
-        worksheets = Worksheet.objects.filter(area_id=area_id)
-        if not worksheets.exists():
-            return Response({'detail': 'No worksheets found for this area.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = WorksheetSerializer(worksheets, many=True)
-
-        # add success rate
-        worksheets_with_rate = []
-        for worksheet in worksheets:
-            success_rate = SuccessRate.objects.filter(worksheet=worksheet, visitor_id=visitor_id)
-            worksheet_data = WorksheetSerializer(worksheet).data
-            worksheet_data['success_rate'] = success_rate.latest('created_at').rate if success_rate else None
-            worksheets_with_rate.append(worksheet_data)
-
-        return Response(worksheets_with_rate)
-
-
-class WorksheetAPIView(APIView):
-    @swagger_auto_schema(
-        operation_description='Vrací pracovní list podle jeho ID.',
-    )
-
-    def get(self, request, worksheet_id):
-        worksheet = Worksheet.objects.filter(pk=worksheet_id).first()
-        if not worksheet:
-            return Response({'detail': 'No worksheet found.'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = WorksheetSerializer(worksheet, context={'request': request})
-        return Response(serializer.data)

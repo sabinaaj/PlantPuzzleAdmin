@@ -19,25 +19,3 @@ class SchoolGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SchoolGroup
         fields = ['id', 'group']
-
-class VisitorResponseSerializer(serializers.ModelSerializer):
-    question = serializers.PrimaryKeyRelatedField(queryset=Question.objects.all())
-    options = serializers.PrimaryKeyRelatedField(queryset=Option.objects.all(), many=True)
-
-    class Meta:
-        model = VisitorResponse
-        fields = ['visitor', 'question', 'options', 'is_correct']
-
-    def create(self, validated_data):
-        options = validated_data.pop('options', [])
-        visitor_response = VisitorResponse.objects.create(**validated_data)
-        visitor_response.options.set(options)
-        return visitor_response
-
-
-class SuccessRateSerializer(serializers.ModelSerializer):
-    worksheet = serializers.PrimaryKeyRelatedField(queryset=Worksheet.objects.all())
-
-    class Meta:
-        model = SuccessRate
-        fields = ['rate', 'visitor', 'worksheet']
