@@ -1,9 +1,11 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Visitor, SchoolGroup
-from .serializers import VisitorSerializer, SchoolGroupSerializer, \
-    VisitorResponseSerializer, SuccessRateSerializer
+
+from worksheets.models import Worksheet, Question, Option
+from .models import Visitor, SchoolGroup, SuccessRate, VisitorResponse
+from .serializers import VisitorSerializer, SchoolGroupSerializer
 
 
 class VisitorView(APIView):
@@ -52,22 +54,40 @@ class SchoolGroupsView(APIView):
         return Response(serializer.data)
 
 
-class SubmitResponsesView(APIView):
+class SubmitResultsView(APIView):
 
-    def post(self, request):
-        serializer = VisitorResponseSerializer(data=request.data['responses'], many=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Responses submitted successfully'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request, visitor_id):
+        visitor = get_object_or_404(Visitor, id=visitor_id)
+        data = request.data
 
+        for result in data:
 
-class SubmitSuccessRateView(APIView):
+            success_rate = result['success_rate']
+            worksheet = get_object_or_404(Worksheet, id=success_rate['worksheet'])
 
-    def post(self, request):
-        serializer = SuccessRateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'message': 'Success rate submitted successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Create SuccessRate
+            SuccessRate.objects.create(
+                rate=success_rate['rate'],
+                worksheet=worksheet,
+                visitor=visitor,
+                created_at=result['created_at']
+            )
+
+            # Create VisitorResponse
+            for response_data in result['responses']:
+                question = get_object_or_404(Question, id=response_data['question'])
+
+                visitor_response = VisitorResponse.objects.create(
+                    visitor=visitor,
+                    question=question,
+                    is_correct=response_data.get('is_correct', False),
+                    created_at=result['created_at']
+                )
+
+                options = Option.objects.filter(id__in=response_data['options'])
+                visitor_response.options.set(options)
+                visitor_response.save()
+
+        return Response({"message": "Results saved successfully."}, status=status.HTTP_201_CREATED)
+
 
