@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from worksheets.models import Worksheet, Question, Option
-from .models import Visitor, SchoolGroup, SuccessRate, VisitorResponse, Achievement
-from .serializers import VisitorSerializer, SchoolGroupSerializer, AchievementSerializer
+from .models import Visitor, SchoolGroup, SuccessRate, VisitorResponse
+from .serializers import VisitorSerializer, SchoolGroupSerializer
 
 
 class VisitorView(APIView):
@@ -51,14 +51,6 @@ class SchoolGroupsView(APIView):
     def get(self, request):
         queryset = SchoolGroup.objects.all()
         serializer = SchoolGroupSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-
-class AchievementsView(APIView):
-
-    def get(self, request):
-        queryset = Achievement.objects.all()
-        serializer = AchievementSerializer(queryset, many=True)
         return Response(serializer.data)
 
 

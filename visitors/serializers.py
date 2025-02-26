@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from .models import Visitor, SchoolGroup, VisitorResponse, SuccessRate, Achievement
-from worksheets.models import Question, Option, Worksheet
+from .models import Visitor, SchoolGroup
 
 
 class VisitorSerializer(serializers.ModelSerializer):
@@ -20,10 +19,3 @@ class SchoolGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SchoolGroup
         fields = ['id', 'group']
-
-
-class AchievementSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = Achievement
-        fields = ['id', 'title', 'description']
