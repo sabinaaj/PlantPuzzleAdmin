@@ -10,14 +10,9 @@ class SchoolGroup(models.Model):
     group = models.IntegerField(choices=Group.choices, default=Group.ZS_1)
 
 
-class Achievement(models.Model):
-    title = models.CharField(max_length=100)
-    description = models.TextField(null=True, blank=True)
-
-
 class Visitor(models.Model):
     school_group = models.ManyToManyField(SchoolGroup)
-    achievements = models.ManyToManyField(Achievement)
+    score = models.PositiveSmallIntegerField(default=0)
 
 
 class VisitorResponse(models.Model):

@@ -60,6 +60,9 @@ class SubmitResultsView(APIView):
         visitor = get_object_or_404(Visitor, id=visitor_id)
         data = request.data
 
+        if not data:
+            return Response({'detail': 'No data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
         for result in data:
 
             success_rate = result['success_rate']
@@ -88,6 +91,34 @@ class SubmitResultsView(APIView):
                 visitor_response.options.set(options)
                 visitor_response.save()
 
+        # Create Score
+        score = 0
+        latest_rates = (SuccessRate.objects.filter(visitor=visitor)
+                        .order_by('worksheet', 'visitor', '-created_at')
+                        .distinct('worksheet', 'visitor'))
+        for success_rate in latest_rates:
+            score += success_rate.rate
+
+        visitor.score = score
+        visitor.save()
+
         return Response({"message": "Results saved successfully."}, status=status.HTTP_201_CREATED)
 
 
+class BetterThanView(APIView):
+
+    def get(self, request, visitor_id):
+        visitor = Visitor.objects.filter(pk=visitor_id).first()
+        if not visitor:
+            return Response({'detail': 'No visitor found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        visitors = Visitor.objects.filter(score__gt=0).all()
+        if len(visitors) < 5:
+            return Response({'detail': 'Not enough visitors.'}, status=status.HTTP_404_NOT_FOUND)
+
+        scores = sorted(visitors.values_list('score', flat=True))
+        lower_scores_count = sum(1 for s in scores if s < visitor.score)
+
+        percentile = (lower_scores_count / len(scores)) * 100
+
+        return Response({'better_than': percentile}, status=status.HTTP_200_OK)
