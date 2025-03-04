@@ -11,7 +11,7 @@
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-3xl font-bold text-gray-700 px-1">Oblasti</h1>
         <a href="{% url 'areas:area_create' %}">
-            <button class="ml-auto bg-pistachio-500 text-white rounded px-3 py-3 hover:bg-pistachio-600 shadow">
+            <button class="ml-auto bg-pistachio-500 text-white rounded p-3 hover:bg-pistachio-600 shadow">
                 <i class="fas fa-plus"></i>
             </button>
         </a>
@@ -21,7 +21,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
         {% for area in areas %}
 
-        <div class="bg-white p-4 rounded shadow-md hover:shadow-lg transition-shadow flex items-center justify-between space-x-4">
+        <div class="bg-white p-4 rounded-md shadow-md hover:shadow-lg transition-shadow flex items-center justify-between space-x-4">
             <a href="{% url 'worksheets:worksheets_list' area.pk %}" class="flex items-center space-x-4 hover:underline overflow-hidden">
                 <div class="flex-shrink-0">
                     {% if area.icon %}

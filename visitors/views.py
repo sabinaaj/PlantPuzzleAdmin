@@ -1,11 +1,84 @@
+from django.db.models import Avg
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView, View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.utils.timezone import now, timedelta
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
 from worksheets.models import Worksheet, Question, Option
+from areas.models import Area
 from .models import Visitor, SchoolGroup, SuccessRate, VisitorResponse
 from .serializers import VisitorSerializer, SchoolGroupSerializer
+
+
+class StatsPageView(LoginRequiredMixin, TemplateView):
+    template_name = 'stats_page.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['areas'] = Area.objects.all().prefetch_related('worksheet_set')
+
+        context['visitors_cnt'] = Visitor.objects.count()
+        context['done_cnt'] = SuccessRate.objects.count()
+        context['avg_rate'] = SuccessRate.objects.all().aggregate(rate=Avg('rate'))['rate'] or 0
+        return context
+
+
+class FetchStatsAjaxView(View):
+    def get(self, request):
+        time_range = request.GET.get('range', 'all')
+
+        if time_range == 'today':
+            start_date = now().replace(hour=0, minute=0, second=0)
+        elif time_range == 'week':
+            start_date = now() - timedelta(days=7)
+        elif time_range == 'month':
+            start_date = now() - timedelta(days=30)
+        else:
+            start_date = None
+
+        data = {}
+
+        areas = Area.objects.all().prefetch_related('worksheet_set')
+        if start_date:
+            success_rates = SuccessRate.objects.filter(created_at__gte=start_date)
+        else:
+            success_rates = SuccessRate.objects.all()
+
+
+        for area in areas:
+
+            worksheets = area.worksheet_set.all()
+            done_cnt = success_rates.filter(worksheet__in=worksheets).count()
+            avg_rate = success_rates.filter(worksheet__in=worksheets).aggregate(rate=Avg('rate'))['rate'] or 0
+
+            worksheet_success_rates = []
+            worksheet_labels = []
+            worksheet_data = {}
+            for worksheet in worksheets:
+
+                worksheet_done_cnt = success_rates.filter(worksheet=worksheet).count()
+                worksheet_avg_rate = success_rates.filter(worksheet=worksheet).aggregate(rate=Avg('rate'))['rate'] or 0
+
+                worksheet_success_rates.append(worksheet_avg_rate)
+                worksheet_labels.append(worksheet.title)
+                worksheet_data[worksheet.pk] = {
+                    'done_cnt': worksheet_done_cnt,
+                    'avg_rate': worksheet_avg_rate,
+                }
+
+            data[area.pk] = {
+                'done_cnt': done_cnt,
+                'avg_rate': avg_rate,
+                'worksheet_success_rates': worksheet_success_rates,
+                'worksheet_labels': worksheet_labels,
+                'worksheet_data': worksheet_data
+            }
+
+        return JsonResponse({ 'data': data })
 
 
 class VisitorView(APIView):
