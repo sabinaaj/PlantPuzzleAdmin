@@ -9,7 +9,7 @@
 
     <h1 class="text-3xl font-bold text-gray-700 px-1">Statistika</h1>
 
-    <div class="grid gap-4 lg:gap-8 md:grid-cols-3 py-8">
+    <div class="grid gap-4 lg:gap-8 md:grid-cols-3 pt-6 pb-4">
         <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
             <div
                 class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
@@ -44,8 +44,8 @@
         </div>
     </div>
 
-    <div class="my-4 px-1 flex justify-between items-center">
-        <div class ="text-2xl font-bold text-gray-700">
+    <div class="pt-6 pb-4 flex justify-between items-center">
+        <div class ="text-2xl font-bold text-gray-700 px-1">
             Přehled za
 
             <select id="timeRangeDropdown" class="border rounded px-2 py-1">
@@ -87,11 +87,11 @@
                     <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                         <span>Průměrná úspěšnost</span>
                     </div>
-                    <div id="avg-rate-{{ area.pk }}" class="text-3xl">0</div>
+                    <div id="avg-rate-{{ area.pk }}" class="text-3xl">0%</div>
                 </div>
             </div>
             <div>
-                <canvas id="chart-{{ forloop.counter }}"></canvas>
+                <canvas id="chart-{{ area.id }}"></canvas>
             </div>
         </div>
 
@@ -99,7 +99,7 @@
 
         <div class="mt-4 space-y-4">
             {% for worksheet in area.worksheet_set.all %}
-                <div class="bg-gray-100 p-4 rounded-xl">
+                <div class="border border-gray-200 p-4 rounded-xl">
                     <h5 class="text-md font-semibold text-gray-800">{{ worksheet.title }}</h5>
                     <div class="grid grid-cols-2 gap-4 mt-2">
                         <div class="grid gap-4 md:grid-cols-2">
@@ -107,18 +107,18 @@
                                 <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                                     <span>Vyplněno</span>
                                 </div>
-                                <div class="text-2xl">120</div>
+                                <div id="ws-done-cnt-{{ worksheet.id }}" class="text-2xl">0</div>
                                 <div class="absolute top-0 right-0 h-20 border-r border-gray-300"></div>
                             </div>
                             <div class="p-4 space-y-2">
                                 <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                                     <span>Průměrná úspěšnost</span>
                                 </div>
-                                <div class="text-2xl">78%</div>
+                                <div id="ws-avg-rate-{{ worksheet.id }}" class="text-2xl">0%</div>
                             </div>
                         </div>
                         <div>
-                            <canvas id="worksheet-chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"></canvas>
+                            <canvas id="worksheet-chart-{{ worksheet.id }}"></canvas>
                         </div>
                     </div>
                 </div>
@@ -144,21 +144,6 @@
             getData(dropdown);
     });
 
-        {% for area in areas %}
-            {% for worksheet in area.worksheet_set.all %}
-            new Chart(document.getElementById("worksheet-chart-{{ forloop.parentloop.counter }}-{{ forloop.counter }}"), {
-                type: 'bar',
-                data: {
-                    labels: ["Otázka 1", "Otázka 2", "Otázka 3"],
-                    datasets: [{
-                        label: "Úspěšnost",
-                        data: [80, 90, 70],
-                        backgroundColor: "rgba(255, 99, 132, 0.6)"
-                    }]
-                }
-            });
-            {% endfor %}
-        {% endfor %}
     });
 
     function getData(dropdown) {
@@ -167,34 +152,30 @@
          fetch(`/visitors/stats/fetch/?range=${selectedRange}`)
             .then(response => response.json())
             .then(responseData => {
-                console.log("API Response:", responseData);
                 const data = responseData.data;
 
             let areaId;
+            let worksheetId;
+            let worksheetData;
             {% for area in areas %}
                 areaId = "{{ area.pk }}";
-                console.log("Processing area:", areaId);
 
-                if (data[areaId]) {
-                    document.getElementById(`done-cnt-${areaId}`).textContent = data[areaId]['done_cnt'] || 0;
-                    document.getElementById(`avg-rate-${areaId}`).textContent = (data[areaId]['avg_rate'] || 0) + " %";
-                } else {
-                    console.warn(`Žádná data pro oblast ${areaId}`);
-                    document.getElementById(`done-cnt-${areaId}`).textContent = "0";
-                    document.getElementById(`avg-rate-${areaId}`).textContent = "0 %";
-                }
+                document.getElementById(`done-cnt-${areaId}`).textContent = data[areaId]['done_cnt'] || 0;
+                document.getElementById(`avg-rate-${areaId}`).textContent = (data[areaId]['avg_rate'] || 0) + " %";
 
-                new Chart(document.getElementById(`chart-${areaId}`), {
-                    type: 'bar',
-                    data: {
-                        labels: data[areaId]['worksheet_labels'],
-                        datasets: [{
-                            label: "Úspěšnost",
-                            data: [65, 75, 85],
-                            backgroundColor: "rgba(54, 162, 235, 0.6)"
-                        }]
-                    }
-                });
+                createAreaChart(areaId, data[areaId]);
+
+                {% for worksheet in area.worksheet_set.all %}
+
+                worksheetId = "{{ worksheet.pk }}";
+                worksheetData = data[areaId]['worksheet_data'][worksheetId];
+
+                document.getElementById(`ws-done-cnt-${worksheetId}`).textContent = (worksheetData['done_cnt'] || 0) + "x";
+                document.getElementById(`ws-avg-rate-${worksheetId}`).textContent = (worksheetData['avg_rate'] || 0) + " %";
+
+                createWorksheetChart(worksheetId, worksheetData);
+
+                {% endfor %}
             {% endfor %}
 
             })
@@ -203,6 +184,95 @@
                 alert("Nepodařilo se načíst statistiky.");
             });
     }
+
+    function createAreaChart(areaId, data) {
+        let canvasElement = document.getElementById(`chart-${areaId}`);
+
+        if (canvasElement) {
+            if (canvasElement.chart) {
+                canvasElement.chart.destroy();
+            }
+
+            canvasElement.chart = new Chart(canvasElement, {
+                type: 'bar',
+                data: {
+                    labels: data['worksheet_labels'],
+                    datasets: [{
+                        label: "Úspěšnost",
+                        data: data['worksheet_success_rates'],
+                        backgroundColor: "rgba(147, 197, 114, 0.2)",
+                        borderColor: "rgba(147, 197, 114, 1)",
+                        borderWidth: 1,
+                        maxBarThickness: 250
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100,
+                        },
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Úspěšnost pracovních listů`,
+                            font: { size: 16 }
+                        },
+                        legend: { display: false },
+                    },
+                }
+            });
+        } else {
+            console.error(`Canvas with id chart-${areaId} not found.`);
+        }
+    }
+
+    function createWorksheetChart(worksheetId, data) {
+        let canvasElement = document.getElementById(`worksheet-chart-${worksheetId}`);
+        let labels = data['tasks_success_rates'].map((label, index) => (index + 1).toString());
+
+        if (canvasElement) {
+            if (canvasElement.chart) {
+                canvasElement.chart.destroy();
+            }
+
+            canvasElement.chart = new Chart(canvasElement, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Úspěšnost",
+                        data: data['tasks_success_rates'],
+                        backgroundColor: "rgba(93, 143, 59, 0.3)",
+                        borderColor: "rgba(93, 143, 59, 1)",
+                        borderWidth: 1,
+                        maxBarThickness: 250
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100,
+                        },
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Úspěšnost pracovních listů`,
+                            font: { size: 16 }
+                        },
+                        legend: { display: false },
+                    },
+                }
+            });
+        } else {
+            console.error(`Canvas with id chart-${worksheetId} not found.`);
+        }
+    }
+
+
 
 </script>
 

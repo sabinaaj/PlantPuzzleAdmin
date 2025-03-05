@@ -63,11 +63,35 @@ class FetchStatsAjaxView(View):
                 worksheet_done_cnt = success_rates.filter(worksheet=worksheet).count()
                 worksheet_avg_rate = success_rates.filter(worksheet=worksheet).aggregate(rate=Avg('rate'))['rate'] or 0
 
+                tasks = worksheet.task_set.all()
+
+                tasks_success_rates = []
+                for task in tasks:
+                    questions = task.question_set.all()
+
+                    if start_date:
+                        responses = VisitorResponse.objects.filter(
+                            created_at__gte=start_date,
+                            question__in=questions
+                        )
+                    else:
+                        responses = VisitorResponse.objects.filter(
+                            question__in=questions
+                        )
+
+                    responses_cnt = responses.count()
+                    correct_responses_count = responses.filter(is_correct=True).count()
+                    responses_avg_rate = ((correct_responses_count / responses_cnt) * 100) if responses_cnt else 0
+
+                    tasks_success_rates.append(responses_avg_rate)
+
+
                 worksheet_success_rates.append(worksheet_avg_rate)
                 worksheet_labels.append(worksheet.title)
                 worksheet_data[worksheet.pk] = {
                     'done_cnt': worksheet_done_cnt,
                     'avg_rate': worksheet_avg_rate,
+                    'tasks_success_rates': tasks_success_rates
                 }
 
             data[area.pk] = {
