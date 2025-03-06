@@ -11,52 +11,45 @@
 
     <div class="grid gap-4 lg:gap-8 md:grid-cols-3 pt-6 pb-4">
         <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
-            <div
-                class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
                 <span>Počet návštěvníků</span>
             </div>
 
-            <div class="text-3xl">
-                {{ visitors_cnt }}
-            </div>
+            <div class="text-3xl"> {{ visitors_cnt }} </div>
         </div>
 
         <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
-            <div
-                class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
                 <span>Dokončených testů</span>
             </div>
 
-            <div class="text-3xl">
-                {{ done_cnt }}
-            </div>
+            <div class="text-3xl"> {{ done_cnt }} </div>
         </div>
 
         <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
-            <div
-                class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
                 <span>Průměrná úspěšnost</span>
             </div>
 
-            <div class="text-3xl">
-                {{ avg_rate }} %
-            </div>
+            <div class="text-3xl"> {{ avg_rate }} % </div>
         </div>
     </div>
 
     <div class="pt-6 pb-4 flex justify-between items-center">
-        <div class ="text-2xl font-bold text-gray-700 px-1">
+        <div class="text-2xl font-bold text-gray-700 px-1">
             Přehled za
 
-            <select id="timeRangeDropdown" class="border rounded px-2 py-1">
-                <option value="all">Celé období</option>
+            <select id="timeRangeDropdown" class="border rounded px-2 py-1 w-40">
                 <option value="today">Dnes</option>
                 <option value="week">Poslední týden</option>
                 <option value="month">Poslední měsíc</option>
+                <option selected value="all">Celé období</option>
             </select>
         </div>
 
-        <button class="bg-pistachio-500 text-white px-3 py-2 rounded hover:bg-pistachio-600 shadow">
+        <button
+            onclick="downloadStats()"
+            class="bg-pistachio-500 text-white px-3 py-2 rounded hover:bg-pistachio-600 shadow">
             <i class="fas fa-download pr-2"></i>
             Stáhnout přehled
         </button>
@@ -71,17 +64,19 @@
             {% else %}
                 <img src="{% static 'area_placeholder.png' %}" class="h-14">
             {% endif %}
-            <h3 class="text-2xl font-semibold">{{ area.title }}</h3>
+            <h3 class="text-2xl text-gray-700 font-semibold">{{ area.title }}</h3>
         </div>
 
         <div class="grid grid-cols-2 gap-6 mt-4">
             <div class="grid gap-4 md:grid-cols-2">
                 <div class="p-6 space-y-2 relative">
+
                     <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                         <span>Dokončených pracovních listů</span>
                     </div>
+
                     <div id="done-cnt-{{ area.pk }}" class="text-3xl">0</div>
-                    <div class="absolute top-0 right-0 h-24 border-r border-gray-300"></div>
+                    <div class="absolute top-0 right-0 h-20 border-r border-gray-300"></div>
                 </div>
                 <div class="p-6 space-y-2">
                     <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
@@ -95,27 +90,32 @@
             </div>
         </div>
 
-        <h4 class="mt-6 text-lg font-semibold">Pracovní listy</h4>
+        <h4 class="mt-6 text-lg font-semibold text-gray-700">Pracovní listy</h4>
 
         <div class="mt-4 space-y-4">
             {% for worksheet in area.worksheet_set.all %}
+
                 <div class="border border-gray-200 p-4 rounded-xl">
-                    <h5 class="text-md font-semibold text-gray-800">{{ worksheet.title }}</h5>
+                    <h5 class="text-md font-semibold text-gray-700">{{ worksheet.title }}</h5>
+
                     <div class="grid grid-cols-2 gap-4 mt-2">
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="p-4 space-y-2 relative">
+
                                 <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                                     <span>Vyplněno</span>
                                 </div>
                                 <div id="ws-done-cnt-{{ worksheet.id }}" class="text-2xl">0</div>
                                 <div class="absolute top-0 right-0 h-20 border-r border-gray-300"></div>
                             </div>
+
                             <div class="p-4 space-y-2">
                                 <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
                                     <span>Průměrná úspěšnost</span>
                                 </div>
                                 <div id="ws-avg-rate-{{ worksheet.id }}" class="text-2xl">0%</div>
                             </div>
+
                         </div>
                         <div>
                             <canvas id="worksheet-chart-{{ worksheet.id }}"></canvas>
@@ -136,20 +136,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const dropdown = document.getElementById("timeRangeDropdown");
         getData(dropdown);
 
         dropdown.addEventListener("change", function () {
             getData(dropdown);
+        });
     });
 
-    });
+    function downloadStats() {
+        const dropdown = document.getElementById("timeRangeDropdown");
+        const selectedRange = dropdown.value;
+
+        window.location.href = `/visitors/stats/export/?range=${selectedRange}`;
+    }
 
     function getData(dropdown) {
         const selectedRange = dropdown.value;
 
-         fetch(`/visitors/stats/fetch/?range=${selectedRange}`)
+        fetch(`/visitors/stats/fetch/?range=${selectedRange}`)
             .then(response => response.json())
             .then(responseData => {
                 const data = responseData.data;
@@ -165,7 +171,7 @@
 
                 createAreaChart(areaId, data[areaId]);
 
-                {% for worksheet in area.worksheet_set.all %}
+                {%for worksheet in area.worksheet_set.all %}
 
                 worksheetId = "{{ worksheet.pk }}";
                 worksheetData = data[areaId]['worksheet_data'][worksheetId];
@@ -217,9 +223,9 @@
                         title: {
                             display: true,
                             text: `Úspěšnost pracovních listů`,
-                            font: { size: 16 }
+                            font: {size: 16}
                         },
-                        legend: { display: false },
+                        legend: {display: false},
                     },
                 }
             });
@@ -261,9 +267,9 @@
                         title: {
                             display: true,
                             text: `Úspěšnost pracovních listů`,
-                            font: { size: 16 }
+                            font: {size: 16}
                         },
-                        legend: { display: false },
+                        legend: {display: false},
                     },
                 }
             });

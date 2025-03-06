@@ -1,0 +1,83 @@
+{% load static %}
+
+<html lang="cs" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistický přehled</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="font-sans">
+
+    <div class="flex items-center pb-4">
+        <img src="{{ static_root }}/logo.png" class="h-12">
+        <h1 class="text-3xl font-semibold pl-4">Přehled za {{ time }}</h1>
+    </div>
+
+    <div class="leading-loose">
+        <p>Počet návštěvníků: <strong>{{ visitors_cnt }}</strong></p>
+        <p>Dokončených testů: <strong>{{ done_cnt }}</strong></p>
+        <p>Průměrná úspěšnost: <strong>{{ avg_rate }} %</strong></p>
+    </div>
+
+    {% for area in areas %}
+    <div class="py-4">
+
+        <div class="flex items-center pb-4">
+            {% if area.icon %}
+                <img src="{{ area.icon }}" alt="{{ area.title }}" class="h-14">
+            {% else %}
+                <img src="{{ static_root }}/dark_area_placeholder.png" class="h-14">
+            {% endif %}
+
+            <h3 class="text-2xl font-semibold pl-4">{{ area.title }}</h3>
+        </div>
+
+        <div class="leading-loose">
+            <p>Dokončených pracovních listů: <strong>{{ area.done_cnt }}</strong></p>
+            <p>Průměrná úspěšnost: <strong>{{ area.avg_rate }} %</strong></p>
+        </div>
+
+
+        {% for worksheet in area.worksheets %}
+        <div class="mt-6">
+            <h3 class="text-xl font-semibold  pb-2">{{ worksheet.title }}</h3>
+
+            <div class="leading-loose">
+            <p>Dokončeno: <strong>{{ worksheet.done_cnt }}x</strong></p>
+            <p>Průměrná úspěšnost: <strong>{{ worksheet.avg_rate }} %</strong></p>
+        </div>
+
+            <table class="w-full text-sm text-left mt-2">
+                <thead class="text-xs uppercase font-semibold bg-gray-200 text-gray-700">
+                    <tr>
+                        <th class="px-4 py-2 whitespace-nowrap w-auto">#</th>
+                        <th class="px-4 py-2 w-full">Otázka</th>
+                        <th class="px-4 py-2 whitespace-nowrap w-auto">Správně odpovězeno (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in worksheet.tasks %}
+                    <tr class="border-b">
+                        <td class="px-4 py-2 whitespace-nowrap w-auto">{{ forloop.counter }}</td>
+                        <td class="px-4 py-2 w-full">{{ task.text }}</td>
+                        <td class="px-4 py-2 whitespace-nowrap w-auto">{{ task.done_percent }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="2" class="border-b px-4 py-2 text-center">Žádné otázky nebyly nalezeny.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <p class="font-bold text-xl py-2">Žádné oblasti nebyly nalezeny.</p>
+    {% endfor %}
+
+</body>
+</html>

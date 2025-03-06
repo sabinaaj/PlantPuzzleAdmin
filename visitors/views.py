@@ -1,4 +1,4 @@
-from django.db.models import Avg
+from django.db.models import Avg, Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView, View
@@ -19,7 +19,9 @@ class StatsPageView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['areas'] = Area.objects.all().prefetch_related('worksheet_set')
+        context['areas'] = Area.objects.filter(
+            Exists(Worksheet.objects.filter(area=OuterRef('pk'), successrate__isnull=False))
+        ).prefetch_related('worksheet_set')
 
         context['visitors_cnt'] = Visitor.objects.count()
         context['done_cnt'] = SuccessRate.objects.count()
@@ -61,7 +63,7 @@ class FetchStatsAjaxView(View):
             for worksheet in worksheets:
 
                 worksheet_done_cnt = success_rates.filter(worksheet=worksheet).count()
-                worksheet_avg_rate = success_rates.filter(worksheet=worksheet).aggregate(rate=Avg('rate'))['rate'] or 0
+                worksheet_avg_rate = int(success_rates.filter(worksheet=worksheet).aggregate(rate=Avg('rate'))['rate'] or 0)
 
                 tasks = worksheet.task_set.all()
 
@@ -81,9 +83,10 @@ class FetchStatsAjaxView(View):
 
                     responses_cnt = responses.count()
                     correct_responses_count = responses.filter(is_correct=True).count()
-                    responses_avg_rate = ((correct_responses_count / responses_cnt) * 100) if responses_cnt else 0
+                    responses_avg_rate = int((correct_responses_count / responses_cnt) * 100 if responses_cnt else 0)
 
                     tasks_success_rates.append(responses_avg_rate)
+
 
 
                 worksheet_success_rates.append(worksheet_avg_rate)
@@ -96,7 +99,7 @@ class FetchStatsAjaxView(View):
 
             data[area.pk] = {
                 'done_cnt': done_cnt,
-                'avg_rate': avg_rate,
+                'avg_rate': int(avg_rate),
                 'worksheet_success_rates': worksheet_success_rates,
                 'worksheet_labels': worksheet_labels,
                 'worksheet_data': worksheet_data
