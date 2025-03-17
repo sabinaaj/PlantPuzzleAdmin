@@ -25,7 +25,7 @@ class StatsPageView(LoginRequiredMixin, TemplateView):
 
         context['visitors_cnt'] = Visitor.objects.count()
         context['done_cnt'] = SuccessRate.objects.count()
-        context['avg_rate'] = SuccessRate.objects.all().aggregate(rate=Avg('rate'))['rate'] or 0
+        context['avg_rate'] = int(SuccessRate.objects.all().aggregate(rate=Avg('rate'))['rate'] or 0)
         return context
 
 
