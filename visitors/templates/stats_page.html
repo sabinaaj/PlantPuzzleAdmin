@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+{% include 'navbar.html' %}
+
+<div class="container max-w-6xl mx-auto pt-10">
+
+    <h1 class="text-3xl font-bold text-gray-700 px-1">Statistika</h1>
+
+    <div class="grid gap-4 lg:gap-8 md:grid-cols-3 pt-6 pb-4">
+        <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
+                <span>Počet návštěvníků</span>
+            </div>
+
+            <div class="text-3xl"> {{ visitors_cnt }} </div>
+        </div>
+
+        <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
+                <span>Dokončených testů</span>
+            </div>
+
+            <div class="text-3xl"> {{ done_cnt }} </div>
+        </div>
+
+        <div class="relative p-6 rounded-xl bg-white shadow-md space-y-2">
+            <div class="flex items-center space-x-2 rtl:space-x-reverse text-sm font-medium text-gray-500">
+                <span>Průměrná úspěšnost</span>
+            </div>
+
+            <div class="text-3xl"> {{ avg_rate }} % </div>
+        </div>
+    </div>
+
+    <div class="pt-6 pb-4 flex justify-between items-center">
+        <div class="text-2xl font-bold text-gray-700 px-1">
+            Přehled za
+
+            <select id="timeRangeDropdown" class="border rounded px-2 py-1 w-40">
+                <option value="today">Dnes</option>
+                <option value="week">Poslední týden</option>
+                <option value="month">Poslední měsíc</option>
+                <option selected value="all">Celé období</option>
+            </select>
+        </div>
+
+        <button
+            onclick="downloadStats()"
+            class="bg-pistachio-500 text-white px-3 py-2 rounded hover:bg-pistachio-600 shadow">
+            <i class="fas fa-download pr-2"></i>
+            Stáhnout přehled
+        </button>
+
+    </div>
+
+    {% for area in areas %}
+    <div class="bg-white p-6 rounded-xl shadow-md mb-6">
+        <div class="flex items-center space-x-4">
+            {% if area.icon %}
+                <img src="{{ area.icon.url }}" alt="{{ area.title }}" class="h-14">
+            {% else %}
+                <img src="{% static 'area_placeholder.png' %}" class="h-14">
+            {% endif %}
+            <h3 class="text-2xl text-gray-700 font-semibold">{{ area.title }}</h3>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 mt-4">
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="p-6 space-y-2 relative">
+
+                    <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
+                        <span>Dokončených pracovních listů</span>
+                    </div>
+
+                    <div id="done-cnt-{{ area.pk }}" class="text-3xl">0</div>
+                    <div class="absolute top-0 right-0 h-20 border-r border-gray-300"></div>
+                </div>
+                <div class="p-6 space-y-2">
+                    <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
+                        <span>Průměrná úspěšnost</span>
+                    </div>
+                    <div id="avg-rate-{{ area.pk }}" class="text-3xl">0%</div>
+                </div>
+            </div>
+            <div>
+                <canvas id="chart-{{ area.id }}"></canvas>
+            </div>
+        </div>
+
+        <h4 class="mt-6 text-lg font-semibold text-gray-700">Pracovní listy</h4>
+
+        <div class="mt-4 space-y-4">
+            {% for worksheet in area.worksheet_set.all %}
+
+                <div class="border border-gray-200 p-4 rounded-xl">
+                    <h5 class="text-md font-semibold text-gray-700">{{ worksheet.title }}</h5>
+
+                    <div class="grid grid-cols-2 gap-4 mt-2">
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div class="p-4 space-y-2 relative">
+
+                                <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
+                                    <span>Vyplněno</span>
+                                </div>
+                                <div id="ws-done-cnt-{{ worksheet.id }}" class="text-2xl">0</div>
+                                <div class="absolute top-0 right-0 h-20 border-r border-gray-300"></div>
+                            </div>
+
+                            <div class="p-4 space-y-2">
+                                <div class="flex items-center space-x-2 text-sm font-medium text-gray-500">
+                                    <span>Průměrná úspěšnost</span>
+                                </div>
+                                <div id="ws-avg-rate-{{ worksheet.id }}" class="text-2xl">0%</div>
+                            </div>
+
+                        </div>
+                        <div>
+                            <canvas id="worksheet-chart-{{ worksheet.id }}"></canvas>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-gray-500">Žádné pracovní listy nebyly nalezeny.</p>
+            {% endfor %}
+        </div>
+    </div>
+{% empty %}
+    <p class="text-gray-500">Žádné oblasti nebyly nalezeny.</p>
+{% endfor %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const dropdown = document.getElementById("timeRangeDropdown");
+        getData(dropdown);
+
+        dropdown.addEventListener("change", function () {
+            getData(dropdown);
+        });
+    });
+
+    function downloadStats() {
+        const dropdown = document.getElementById("timeRangeDropdown");
+        const selectedRange = dropdown.value;
+
+        window.location.href = `/visitors/stats/export/?range=${selectedRange}`;
+    }
+
+    function getData(dropdown) {
+        const selectedRange = dropdown.value;
+
+        fetch(`/visitors/stats/fetch/?range=${selectedRange}`)
+            .then(response => response.json())
+            .then(responseData => {
+                const data = responseData.data;
+
+            let areaId;
+            let worksheetId;
+            let worksheetData;
+            {% for area in areas %}
+                areaId = "{{ area.pk }}";
+
+                document.getElementById(`done-cnt-${areaId}`).textContent = data[areaId]['done_cnt'] || 0;
+                document.getElementById(`avg-rate-${areaId}`).textContent = (data[areaId]['avg_rate'] || 0) + " %";
+
+                createAreaChart(areaId, data[areaId]);
+
+                {%for worksheet in area.worksheet_set.all %}
+
+                worksheetId = "{{ worksheet.pk }}";
+                worksheetData = data[areaId]['worksheet_data'][worksheetId];
+
+                document.getElementById(`ws-done-cnt-${worksheetId}`).textContent = (worksheetData['done_cnt'] || 0) + "x";
+                document.getElementById(`ws-avg-rate-${worksheetId}`).textContent = (worksheetData['avg_rate'] || 0) + " %";
+
+                createWorksheetChart(worksheetId, worksheetData);
+
+                {% endfor %}
+            {% endfor %}
+
+            })
+            .catch(error => {
+                console.error("Chyba při načítání statistik:", error);
+                alert("Nepodařilo se načíst statistiky.");
+            });
+    }
+
+    function createAreaChart(areaId, data) {
+        let canvasElement = document.getElementById(`chart-${areaId}`);
+
+        if (canvasElement) {
+            if (canvasElement.chart) {
+                canvasElement.chart.destroy();
+            }
+
+            canvasElement.chart = new Chart(canvasElement, {
+                type: 'bar',
+                data: {
+                    labels: data['worksheet_labels'],
+                    datasets: [{
+                        label: "Úspěšnost",
+                        data: data['worksheet_success_rates'],
+                        backgroundColor: "rgba(147, 197, 114, 0.2)",
+                        borderColor: "rgba(147, 197, 114, 1)",
+                        borderWidth: 1,
+                        maxBarThickness: 250
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100,
+                        },
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Úspěšnost pracovních listů`,
+                            font: {size: 16}
+                        },
+                        legend: {display: false},
+                    },
+                }
+            });
+        } else {
+            console.error(`Canvas with id chart-${areaId} not found.`);
+        }
+    }
+
+    function createWorksheetChart(worksheetId, data) {
+        let canvasElement = document.getElementById(`worksheet-chart-${worksheetId}`);
+        let labels = data['tasks_success_rates'].map((label, index) => (index + 1).toString());
+
+        if (canvasElement) {
+            if (canvasElement.chart) {
+                canvasElement.chart.destroy();
+            }
+
+            canvasElement.chart = new Chart(canvasElement, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Úspěšnost",
+                        data: data['tasks_success_rates'],
+                        backgroundColor: "rgba(93, 143, 59, 0.3)",
+                        borderColor: "rgba(93, 143, 59, 1)",
+                        borderWidth: 1,
+                        maxBarThickness: 250
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            suggestedMax: 100,
+                        },
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Úspěšnost pracovních listů`,
+                            font: {size: 16}
+                        },
+                        legend: {display: false},
+                    },
+                }
+            });
+        } else {
+            console.error(`Canvas with id chart-${worksheetId} not found.`);
+        }
+    }
+
+
+
+</script>
+
+{% endblock %}

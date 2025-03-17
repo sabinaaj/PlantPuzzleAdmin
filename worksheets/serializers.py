@@ -65,6 +65,7 @@ class TaskSerializer(serializers.ModelSerializer):
         model = Task
         fields = ['id', 'text', 'type', 'questions', 'images']
 
+
 class WorksheetSerializer(serializers.ModelSerializer):
     tasks = TaskSerializer(many=True, read_only=True, source='task_set')
 
